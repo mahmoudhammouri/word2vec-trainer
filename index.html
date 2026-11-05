@@ -1,21 +1,38 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-<meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Word2Vec Trainer</title>
-<style>
-:root{
-  --blue:#4472C4; --blue-t:#DAE3F3; --orange:#ED7D31; --orange-t:#FBE5D6;
-  --dark:#44546A; --green:#2E9E5B; --green-t:#DDF2E5;
-  --bg:#F4F6FA; --card:#FFFFFF; --line:#E1E6EE; --text:#1F2A3A; --muted:#6B7788;
-}
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Text to Numbers</title><style>:root{--blue:#4472C4;--blue-t:#DAE3F3;--orange:#ED7D31;--orange-t:#FBE5D6;--dark:#44546A;--green:#2E9E5B;--green-t:#DDF2E5;--purple:#7B5EA7;--purple-t:#ECE6F5;--bg:#F4F6FA;--card:#fff;--line:#E1E6EE;--text:#1F2A3A;--muted:#6B7788}
 *{box-sizing:border-box}
 body{margin:0;font-family:Aptos,"Segoe UI",system-ui,-apple-system,Roboto,sans-serif;background:var(--bg);color:var(--text);font-size:14px}
-header{background:var(--dark);color:#fff;padding:14px 22px;display:flex;align-items:center;gap:16px;flex-wrap:wrap}
+a{color:var(--blue)}
+header{background:var(--dark);color:#fff;padding:12px 22px;display:flex;align-items:center;gap:18px;flex-wrap:wrap}
+header .brand{color:#fff;text-decoration:none;font-weight:700;font-size:16px;opacity:.85}
+header .brand:hover{opacity:1}
 header h1{font-size:19px;margin:0;font-weight:600}
-header .sub{opacity:.75;font-size:13px}
-.toolbar{position:sticky;top:0;z-index:20;background:#fff;border-bottom:1px solid var(--line);padding:10px 22px;display:flex;gap:8px;align-items:center;flex-wrap:wrap;box-shadow:0 2px 6px rgba(0,0,0,.04)}
+header nav{margin-left:auto;display:flex;gap:4px;flex-wrap:wrap}
+header nav a{color:#dfe5ee;text-decoration:none;padding:6px 10px;border-radius:6px;font-size:13px}
+header nav a:hover{background:rgba(255,255,255,.12)}
+header nav a.on{background:#fff;color:var(--dark);font-weight:700}
+.stepper{background:#fff;border-bottom:1px solid var(--line);display:flex;align-items:center;gap:12px;padding:0 22px;flex-wrap:wrap}
+.stepper .links{display:flex;overflow-x:auto;min-width:0;flex:1}
+.stepper a{display:flex;align-items:center;gap:8px;padding:12px 14px;color:var(--muted);text-decoration:none;border-bottom:3px solid transparent;white-space:nowrap;font-weight:500}
+.stepper a .n{width:24px;height:24px;border-radius:50%;background:#EEF1F6;display:inline-flex;align-items:center;justify-content:center;font-size:12px;font-weight:700}
+.stepper a.on{color:var(--blue);border-color:var(--blue)}
+.stepper a.on .n{background:var(--blue);color:#fff}
+.stepper a.seen .n{background:var(--blue-t);color:var(--blue)}
+.stepper a:hover{color:var(--blue)}
+main{padding:18px 22px 40px;max-width:1500px;margin:0 auto}
+.page{display:none}.page.on{display:block;animation:fadein .25s}
+@keyframes fadein{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
+.intro{display:flex;gap:16px;align-items:flex-start;margin-bottom:16px}
+.intro .num{flex:none;width:46px;height:46px;border-radius:12px;background:var(--blue);color:#fff;font-size:22px;font-weight:700;display:flex;align-items:center;justify-content:center}
+.intro h2.pt{margin:0 0 4px;font-size:22px;color:var(--dark)}
+.intro p{margin:0;line-height:1.55;max-width:950px;color:#3b4757}
+.card{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:14px 16px;min-width:0}
+.card+.card{margin-top:16px}
+.card h2{font-size:12px;letter-spacing:.08em;text-transform:uppercase;color:var(--blue);margin:0 0 10px;display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.card h2 .r{margin-left:auto;text-transform:none;letter-spacing:0;font-weight:400}
+.two{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:16px;align-items:start}
+.two>.card+.card{margin-top:0}
+.muted{color:var(--muted)}.small{font-size:12px}
 button{font:inherit;border:1px solid var(--line);background:#fff;color:var(--text);padding:7px 12px;border-radius:7px;cursor:pointer;white-space:nowrap}
 button:hover{border-color:var(--blue);color:var(--blue)}
 button.primary{background:var(--blue);color:#fff;border-color:var(--blue)}
@@ -23,1034 +40,119 @@ button.primary:hover{background:#365fa8;color:#fff}
 button.accent{background:var(--orange);color:#fff;border-color:var(--orange)}
 button.accent:hover{background:#d26a22;color:#fff}
 button:disabled{opacity:.4;cursor:not-allowed}
-.sep{width:1px;height:26px;background:var(--line);margin:0 4px}
-.status{margin-left:auto;display:flex;gap:14px;align-items:center;font-size:13px;color:var(--muted)}
-.status b{color:var(--text)}
-.badge{display:inline-block;padding:3px 9px;border-radius:20px;font-size:12px;font-weight:600}
-.badge.sg{background:var(--blue-t);color:var(--blue)}
-.badge.cbow{background:var(--orange-t);color:#b85512}
-main{padding:18px 22px 40px;max-width:1500px;margin:0 auto}
-.page{display:none}.page.on{display:block;animation:fadein .25s}
-@keyframes fadein{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
-.stepper{background:#fff;border-bottom:1px solid var(--line);display:flex;align-items:center;gap:12px;padding:0 22px;flex-wrap:wrap}
-.stepper .links{display:flex;overflow-x:auto;min-width:0;flex:1}
-.mswitch{display:inline-flex;align-items:center;background:#EEF1F6;border-radius:10px;padding:3px;gap:2px}
-.mswitch .lbl{font-size:12px;color:var(--muted);padding:0 8px;font-weight:600;text-transform:uppercase;letter-spacing:.06em}
-.mswitch button{border:none;background:transparent;padding:6px 14px;border-radius:8px;font-weight:600;color:var(--muted)}
-.mswitch button:hover{color:var(--dark)}
-.mswitch button.on[data-m=skipgram]{background:var(--blue);color:#fff}
-.mswitch button.on[data-m=cbow]{background:var(--orange);color:#fff}
-.intro .mswitch{margin-top:10px}
-.stepper a{display:flex;align-items:center;gap:8px;padding:12px 14px;color:var(--muted);text-decoration:none;border-bottom:3px solid transparent;white-space:nowrap;font-weight:500}
-.stepper a .n{width:24px;height:24px;border-radius:50%;background:#EEF1F6;display:inline-flex;align-items:center;justify-content:center;font-size:12px;font-weight:700}
-.stepper a.on{color:var(--blue);border-color:var(--blue)}
-.stepper a.on .n{background:var(--blue);color:#fff}
-.stepper a.seen .n{background:var(--blue-t);color:var(--blue)}
-.stepper a:hover{color:var(--blue)}
-.toolbar.hide{display:none}
-.intro{display:flex;gap:16px;align-items:flex-start;margin-bottom:16px}
-.intro .num{flex:none;width:46px;height:46px;border-radius:12px;background:var(--blue);color:#fff;font-size:22px;font-weight:700;display:flex;align-items:center;justify-content:center}
-.intro h2.pt{margin:0 0 4px;font-size:22px;color:var(--dark)}
-.intro p{margin:0;line-height:1.55;max-width:900px;color:#3b4757}
-.two{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:16px}
-.trainGrid{display:grid;grid-template-columns:minmax(0,1fr) 400px;gap:16px;align-items:start}
-.spaceGrid{display:grid;grid-template-columns:minmax(0,1.5fr) minmax(0,1fr);gap:16px;align-items:start}
-.hmside{min-width:220px;max-width:320px}
-ol.sents.big{max-height:none;font-size:15px}
-ol.sents.big li{padding:5px 6px}
-.pairs.tall{max-height:520px}
-.pairs div{cursor:pointer}
-.pairs div:hover{background:var(--blue-t)}
-.pairs div.pv{outline:2px solid var(--blue)}
-ol.howto{line-height:1.7;padding-left:20px;margin:0 0 12px}
-.onehot{display:flex;flex-wrap:wrap;gap:4px}
-.onehot div{width:54px;text-align:center;border:1px solid var(--line);border-radius:6px;padding:4px 2px;font-family:Consolas,monospace}
-.onehot div small{display:block;font-family:Aptos,"Segoe UI",sans-serif;font-size:10px;color:var(--muted);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-.onehot div.one{background:var(--blue);color:#fff;border-color:var(--blue)}
-.onehot div.one small{color:#dfe8f8}
-.ministep{background:#fff;border:1px solid var(--line);border-left:4px solid var(--orange);border-radius:8px;padding:8px 12px;margin-bottom:14px;font-size:13px}
-.grid2{display:grid;grid-template-columns:1fr 1fr;gap:0 28px}
-.settings{max-width:900px}
-.pagenav{display:flex;justify-content:space-between;gap:12px;margin-top:22px;padding-top:16px;border-top:1px solid var(--line)}
-.pagenav button{padding:10px 16px}
-.wp{margin-top:12px}
-.swStage{position:relative;padding:34px 12px 14px;overflow-x:auto;margin:6px 0}
-.swToks{display:flex;gap:12px;position:relative;z-index:1;width:max-content}
-.swToks span{padding:10px 16px;border-radius:8px;background:#EEF1F6;font-size:19px;font-weight:600;transition:all .35s;white-space:nowrap}
-.swToks span.out{opacity:.4}
-.swToks span.center{background:var(--blue);color:#fff;transform:translateY(-2px);box-shadow:0 4px 10px rgba(68,114,196,.35)}
-.swToks span.ctx{background:var(--orange-t);color:#a64b0c;outline:1.5px dashed var(--orange)}
-.swFrame{position:absolute;top:22px;bottom:4px;border:2.5px solid var(--orange);border-radius:12px;background:rgba(237,125,49,.06);transition:left .45s ease,width .45s ease;z-index:0}
-.swLbl{position:absolute;top:-19px;left:2px;font-size:11px;font-weight:700;color:var(--orange);white-space:nowrap}
-.swCtrl{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
-.swCtrl select,#swSent{font:inherit;padding:4px 6px;border:1px solid var(--line);border-radius:6px;max-width:260px}
-#swWin button.on{background:var(--orange);color:#fff}
-.swPairs{display:flex;flex-wrap:wrap;gap:6px;margin-top:6px;min-height:34px}
-.swPairs span{font-family:Consolas,monospace;font-size:13px;padding:5px 10px;border-radius:6px;background:#EEF1F6;color:var(--muted)}
-.swPairs span.new{background:var(--orange);color:#fff;animation:pop .35s}
-@keyframes pop{from{transform:scale(.7);opacity:0}to{transform:none;opacity:1}}
-.card{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:14px 16px;min-width:0}
-.card h2{font-size:12px;letter-spacing:.08em;text-transform:uppercase;color:var(--blue);margin:0 0 10px;display:flex;align-items:center;gap:8px}
-.card h2 .r{margin-left:auto;text-transform:none;letter-spacing:0;font-weight:400}
-.muted{color:var(--muted)}
-.small{font-size:12px}
-.col{display:flex;flex-direction:column;gap:16px;min-width:0}
-ol.sents{margin:0;padding-left:22px;max-height:300px;overflow:auto}
-ol.sents li{padding:3px 4px;border-radius:5px;line-height:1.5}
-ol.sents li.cur{background:var(--blue-t)}
-.tok-stop{color:#aab3c0;text-decoration:line-through}
+select{font:inherit;padding:5px 8px;border:1px solid var(--line);border-radius:6px;max-width:100%;background:#fff}
+.explain{background:#F7F9FC;border-left:3px solid var(--blue);padding:9px 12px;border-radius:0 8px 8px 0;line-height:1.55;margin:10px 0}
+.explain.o{border-color:var(--orange)}.explain.g{border-color:var(--green)}
+.formula{font-family:Consolas,monospace;background:#fff;border:1px dashed var(--line);border-radius:8px;padding:10px 14px;margin:8px 0;font-size:14px;line-height:1.7}
+.mono{font-family:Consolas,monospace}
 .chips{display:flex;flex-wrap:wrap;gap:5px}
-.chip{font-size:12px;padding:2px 8px;border-radius:12px;background:#EEF1F6;cursor:pointer;border:1px solid transparent}
+.chip{font-size:13px;padding:3px 9px;border-radius:12px;background:#EEF1F6;cursor:pointer;border:1px solid transparent}
 .chip:hover{border-color:var(--blue)}
 .chip.sel{background:var(--blue);color:#fff}
-.pairs{max-height:200px;overflow:auto;font-family:Consolas,monospace;font-size:12px;border:1px solid var(--line);border-radius:8px}
-.pairs div{padding:2px 8px;border-bottom:1px solid #f1f3f7;white-space:nowrap}
-.pairs div.cur{background:var(--orange-t);font-weight:700}
-.netwrap svg{width:100%;height:auto;display:block}
-.legend{display:flex;gap:14px;flex-wrap:wrap;font-size:12px;color:var(--muted);margin-top:6px}
-.legend i{display:inline-block;width:18px;height:3px;vertical-align:middle;margin-right:4px}
-.phases{display:flex;gap:4px;margin-bottom:12px}
-.phases div{flex:1;text-align:center;font-size:11px;padding:6px 2px;border-radius:6px;background:#EEF1F6;color:var(--muted);cursor:default;line-height:1.2}
-.phases div.done{background:var(--blue-t);color:var(--blue)}
-.phases div.on{background:var(--blue);color:#fff;font-weight:600}
-.sentence{display:flex;flex-wrap:wrap;gap:5px;margin:6px 0 12px}
-.sentence span{padding:4px 9px;border-radius:6px;background:#EEF1F6;font-weight:500}
-.sentence span.center{background:var(--blue);color:#fff}
-.sentence span.ctx{background:var(--orange-t);color:#a64b0c;outline:1px dashed var(--orange)}
-.sentence span.target{background:var(--orange);color:#fff;outline:none}
-.explain{background:#F7F9FC;border-left:3px solid var(--blue);padding:9px 12px;border-radius:0 8px 8px 0;line-height:1.5;margin-bottom:12px}
-.explain code,.mono{font-family:Consolas,monospace;font-size:12.5px}
-.vec{display:flex;gap:3px;flex-wrap:wrap;margin:4px 0 10px}
-.vec span{font-family:Consolas,monospace;font-size:11.5px;padding:3px 5px;border-radius:4px;min-width:46px;text-align:center}
-.probs{display:grid;grid-template-columns:70px 1fr 48px;gap:2px 6px;align-items:center;font-size:12px;max-height:260px;overflow:auto}
-.probs .bar{height:10px;background:var(--blue-t);border-radius:3px;position:relative;overflow:hidden}
-.probs .bar i{position:absolute;left:0;top:0;bottom:0;background:var(--blue);border-radius:3px}
-.probs .t{font-weight:700;color:var(--orange)}
-.probs .t+.bar i{background:var(--orange)}
-.lossbox{display:flex;gap:10px;margin:6px 0 10px}
-.lossbox div{flex:1;background:#F7F9FC;border-radius:8px;padding:8px 10px}
-.lossbox b{font-size:18px;display:block}
-table.upd{border-collapse:collapse;font-family:Consolas,monospace;font-size:11.5px;width:100%}
-table.upd td,table.upd th{padding:3px 4px;border-bottom:1px solid #f0f2f6;text-align:right}
-table.upd th{color:var(--muted);font-weight:500}
-table.upd td:first-child,table.upd th:first-child{text-align:left}
-.pos{color:var(--green)} .neg{color:#C0392B}
-.bottom{grid-column:1/-1;display:grid;gap:16px;grid-template-columns:minmax(0,1.15fr) minmax(0,1fr)}
-.heat{overflow:auto;max-height:520px}
-table.hm{border-collapse:separate;border-spacing:2px;font-family:Consolas,monospace;font-size:11px}
-table.hm th{font-weight:500;color:var(--muted);padding:2px 4px;position:sticky;top:0;background:#fff}
-table.hm td{padding:3px 4px;border-radius:3px;text-align:center;min-width:44px;transition:background .2s}
-table.hm td.w{text-align:right;font-family:inherit;font-weight:600;color:var(--text);background:none;cursor:pointer;min-width:62px}
-table.hm tr.act td.w{color:var(--orange)}
-table.hm tr.act td:not(.w){outline:2px solid var(--orange)}
-table.hm tr.sel td.w{color:var(--blue);text-decoration:underline}
-.flash{animation:fl .7s}
-@keyframes fl{0%{box-shadow:0 0 0 3px var(--green)}100%{box-shadow:0 0 0 0 transparent}}
-.hmgrid{display:grid;grid-template-columns:auto auto minmax(220px,1fr);gap:28px;align-items:start}
-.heat{max-height:none!important}
-.space{display:grid;grid-template-columns:minmax(0,1fr) 170px;gap:12px}
-.space svg{width:100%;height:auto;background:#FBFCFE;border:1px solid var(--line);border-radius:10px;display:block}
-.sim{font-size:12px}
-.sim .row{display:grid;grid-template-columns:64px 1fr 38px;gap:5px;align-items:center;margin:3px 0;cursor:pointer}
-.sim .bar{height:9px;border-radius:3px;background:#EEF1F6;position:relative;overflow:hidden}
-.sim .bar i{position:absolute;top:0;bottom:0;border-radius:3px}
-svg text{font-family:Aptos,"Segoe UI",system-ui,sans-serif}
-.loss svg{width:100%;height:auto;display:block}
-.opts{display:flex;gap:12px;align-items:center;flex-wrap:wrap;font-size:12px;margin-bottom:8px}
-/* modal */
+.chip.new{background:var(--orange);color:#fff;animation:pop .35s}
+@keyframes pop{from{transform:scale(.6);opacity:0}to{transform:none;opacity:1}}
+ol.docs{margin:0;padding:0;list-style:none}
+ol.docs li{display:flex;gap:10px;padding:6px 4px;border-bottom:1px solid #f0f2f6;font-size:15px;align-items:baseline}
+ol.docs li b.d{flex:none;font-size:12px;color:var(--blue);background:var(--blue-t);border-radius:5px;padding:1px 6px}
+.tok-stop{color:#aab3c0;text-decoration:line-through}
+.toks{display:flex;flex-wrap:wrap;gap:8px;margin:8px 0}
+.toks span{padding:8px 13px;border-radius:8px;background:#EEF1F6;font-size:17px;font-weight:600;transition:all .3s}
+.toks span.done{background:var(--blue-t);color:var(--blue)}
+.toks span.cur{background:var(--orange);color:#fff;transform:translateY(-2px);box-shadow:0 4px 10px rgba(237,125,49,.35)}
+.toks span.fut{opacity:.45}
+.ctrl{display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin:8px 0}
+.msg{font-size:14px;margin:6px 0;min-height:22px}
+.tblwrap{overflow:auto;max-width:100%}
+table.mx{border-collapse:separate;border-spacing:2px;font-size:12px}
+table.mx th{font-weight:500;color:var(--muted);padding:3px 5px;background:#fff;white-space:nowrap}
+table.mx thead th{position:sticky;top:0;z-index:1}
+table.mx th.v{writing-mode:vertical-rl;transform:rotate(180deg);text-align:left;padding:5px 2px;height:auto;cursor:pointer}
+table.mx th.rl{text-align:right;font-weight:600;color:var(--text);cursor:pointer}
+table.mx td{min-width:30px;height:26px;text-align:center;border-radius:4px;font-family:Consolas,monospace;background:#F4F6FA;transition:background .25s}
+table.mx td.z{color:#C3CAD4}
+table.mx tr.hl th.rl{color:var(--orange)}
+table.mx td.hl{outline:2px solid var(--orange)}
+table.mx th.hl{color:var(--orange);font-weight:700}
+table.mx tr.dim td,table.mx tr.dim th{opacity:.25}
+table.mx td.flash{animation:fl .6s}
+@keyframes fl{0%{box-shadow:0 0 0 4px var(--green)}100%{box-shadow:0 0 0 0 transparent}}
+table.calc{border-collapse:collapse;width:100%;font-size:13px}
+table.calc th,table.calc td{padding:5px 8px;border-bottom:1px solid #f0f2f6;text-align:right}
+table.calc th{color:var(--muted);font-weight:500;font-size:12px}
+table.calc td:first-child,table.calc th:first-child{text-align:left}
+table.calc td.n{font-family:Consolas,monospace}
+table.calc tr.top td{background:var(--green-t)}
+.bar{height:10px;border-radius:3px;background:#EEF1F6;position:relative;overflow:hidden;min-width:60px}
+.bar i{position:absolute;left:0;top:0;bottom:0;border-radius:3px;background:var(--blue)}
+.vecrow{display:flex;flex-wrap:wrap;gap:3px;margin:6px 0}
+.vecrow div{min-width:46px;text-align:center;border:1px solid var(--line);border-radius:6px;padding:4px 3px;font-family:Consolas,monospace;font-size:13px;transition:all .25s}
+.vecrow div small{display:block;font-family:Aptos,"Segoe UI",sans-serif;font-size:10px;color:var(--muted);max-width:64px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.vecrow div.on{background:var(--blue);color:#fff;border-color:var(--blue)}
+.vecrow div.on small{color:#dfe8f8}
+.vecrow div.o{background:var(--orange);color:#fff;border-color:var(--orange)}
+.vecrow div.o small{color:#fff3ea}
+.stat{display:flex;gap:10px;flex-wrap:wrap;margin:8px 0}
+.stat div{flex:1;min-width:130px;background:#F7F9FC;border-radius:8px;padding:8px 12px}
+.stat b{display:block;font-size:20px}
+.stat span{font-size:12px;color:var(--muted)}
+.opts{display:flex;gap:14px;align-items:center;flex-wrap:wrap;font-size:13px;margin:6px 0 10px}
+.seg{display:inline-flex;background:#EEF1F6;border-radius:9px;padding:3px;gap:2px}
+.seg button{border:none;background:transparent;padding:5px 12px;border-radius:7px;font-weight:600;color:var(--muted)}
+.seg button.on{background:var(--blue);color:#fff}
+.pagenav{display:flex;justify-content:space-between;gap:12px;margin-top:22px;padding-top:16px;border-top:1px solid var(--line)}
+.pagenav button,.pagenav a.btn{padding:10px 16px}
+a.btn{display:inline-block;text-decoration:none;border-radius:7px;font-weight:500}
+a.btn.primary{background:var(--green);color:#fff}
 .modal{position:fixed;inset:0;background:rgba(20,30,45,.45);display:none;align-items:center;justify-content:center;z-index:50;padding:16px}
 .modal.open{display:flex}
-.modal .box{background:#fff;border-radius:14px;width:min(560px,100%);max-height:92vh;overflow:auto;padding:20px 22px;box-shadow:0 20px 50px rgba(0,0,0,.25)}
+.modal .box{background:#fff;border-radius:14px;width:min(600px,100%);max-height:92vh;overflow:auto;padding:20px 22px;box-shadow:0 20px 50px rgba(0,0,0,.25)}
 .modal h3{margin:0 0 4px;font-size:18px}
-.field{margin:14px 0}
-.field label.l{display:block;font-weight:600;margin-bottom:5px}
-.field .hint{font-size:12px;color:var(--muted);margin-top:3px}
-.field input[type=range]{width:100%}
-.field input[type=number]{width:110px;padding:6px 8px;border:1px solid var(--line);border-radius:6px;font:inherit}
-.seg{display:flex;gap:8px}
-.seg label{flex:1;border:1.5px solid var(--line);border-radius:10px;padding:10px 12px;cursor:pointer}
-.seg input{display:none}
-.seg label:has(input:checked){border-color:var(--blue);background:var(--blue-t)}
-.seg label b{display:block}
-.seg label span{font-size:12px;color:var(--muted)}
-textarea{width:100%;min-height:300px;font:13px/1.5 Consolas,monospace;border:1px solid var(--line);border-radius:8px;padding:10px}
-.mfoot{display:flex;justify-content:flex-end;gap:8px;margin-top:16px}
-.rangeval{float:right;font-family:Consolas,monospace;color:var(--blue);font-weight:700}
-@media (max-width:1150px){.trainGrid,.spaceGrid{grid-template-columns:1fr}}
-@media (max-width:820px){main{padding:12px} .two,.grid2{grid-template-columns:1fr} .stepper{padding:0 8px} .stepper a{padding:10px 8px} .stepper a .t{display:none} .intro .num{width:36px;height:36px;font-size:18px} .toolbar{padding:8px 12px} .status{margin-left:0} .space{grid-template-columns:1fr} .hmgrid{grid-template-columns:1fr}}
-</style>
-</head>
-<body>
-<header>
-  <h1>Word2Vec — how an embedding model is trained</h1>
-  <span class="sub">Skip-gram &amp; CBOW, one stage at a time</span>
-</header>
+textarea{width:100%;min-height:260px;font:13px/1.5 Consolas,"Segoe UI",monospace;border:1px solid var(--line);border-radius:8px;padding:10px;margin-top:10px}
+.mfoot{display:flex;justify-content:flex-end;gap:8px;margin-top:14px;align-items:center;flex-wrap:wrap}
+@media (max-width:900px){.two{grid-template-columns:minmax(0,1fr)}}
+@media (max-width:700px){main{padding:12px}header nav{margin-left:0}.stepper{padding:0 8px}.stepper a{padding:10px 8px}.stepper a .t{display:none}.card h2 .r{margin-left:0;width:100%}.card h2 .r select{width:100%}.seg{flex-wrap:wrap}.seg button,.pagenav button,.pagenav a.btn{white-space:normal;text-align:center}.intro .num{width:36px;height:36px;font-size:18px}}
 
-<nav class="stepper"><div id="stepper" class="links"></div><div class="mswitch"><span class="lbl">Method</span><button data-m="skipgram">Skip-gram</button><button data-m="cbow">CBOW</button></div></nav>
-
-<div class="toolbar" id="toolbar">
-  <button id="bSettings" title="Go to the settings page">⚙ Settings</button>
-  <span id="methodBadge" class="badge sg">Skip-gram</span>
-  <div class="sep"></div>
-  <button id="bReset" title="Re-initialise random weights">⟲ Reset</button>
-  <button id="bPrev" title="Go back one step (←)">◀ Prev</button>
-  <button id="bNext" class="primary" title="Show the next step inside the current training pair (→)">Next step ▸</button>
-  <button id="bPair" title="Train on one full pair">Next pair ⏭</button>
-  <button id="bEpoch" title="Train until the end of this epoch">Finish epoch</button>
-  <button id="bRun" class="accent" title="Run / pause (space)">▶ Run training</button>
-  <label class="small muted" style="display:flex;align-items:center;gap:6px">speed <input id="speed" type="range" min="1" max="200" value="25" style="width:90px"></label>
-  <div class="status">
-    <span>Epoch <b id="sEpoch">0</b>/<b id="sEpochs">0</b></span>
-    <span>Pair <b id="sPair">0</b>/<b id="sPairs">0</b></span>
-    <span>Avg loss <b id="sLoss">–</b></span>
-  </div>
-</div>
-
+.hero{background:linear-gradient(135deg,#44546A,#2f3b4c);color:#fff;border-radius:16px;padding:34px 34px 30px;margin-bottom:22px}
+.hero h2{font-size:32px;margin:0 0 8px}
+.hero p{margin:0;max-width:820px;line-height:1.6;color:#dfe5ee;font-size:15px}
+.pipeline{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-top:20px}
+.pipeline span{background:rgba(255,255,255,.12);border-radius:8px;padding:7px 12px;font-weight:600}
+.pipeline i{font-style:normal;opacity:.6}
+.methods{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:16px}
+.m{background:#fff;border:1px solid var(--line);border-radius:14px;padding:18px;display:flex;flex-direction:column;gap:10px;text-decoration:none;color:var(--text);transition:transform .15s,box-shadow .15s;position:relative;overflow:hidden}
+.m:hover{transform:translateY(-3px);box-shadow:0 10px 24px rgba(30,40,60,.10)}
+.m:before{content:"";position:absolute;left:0;right:0;top:0;height:5px;background:var(--c)}
+.m .k{font-size:12px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--c)}
+.m h3{margin:0;font-size:20px;color:var(--dark)}
+.m p{margin:0;line-height:1.5;color:#3b4757;font-size:13.5px}
+.m .ex{font-family:Consolas,monospace;font-size:12.5px;background:#F7F9FC;border-radius:8px;padding:10px;line-height:1.6;white-space:pre-wrap;word-break:break-word}
+.m .go{margin-top:auto;font-weight:700;color:var(--c)}
+.m ul{margin:0;padding-left:18px;font-size:13px;line-height:1.55;color:#3b4757}
+table.cmp{border-collapse:collapse;width:100%;font-size:13.5px;background:#fff}
+table.cmp th,table.cmp td{padding:9px 10px;border-bottom:1px solid var(--line);text-align:left;vertical-align:top}
+table.cmp thead th{color:var(--muted);font-weight:600;font-size:12px;text-transform:uppercase;letter-spacing:.05em}
+table.cmp td.y{color:var(--green);font-weight:600}table.cmp td.n{color:#C0392B}
+.arrow{display:flex;justify-content:space-around;color:var(--muted);font-size:12px;margin:10px 0 4px}
+@media (max-width:1100px){.methods{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media (max-width:640px){.methods{grid-template-columns:minmax(0,1fr)}.hero{padding:22px}.hero h2{font-size:24px}}
+</style></head><body>
+<header><a class="brand" href="index.html">Text → Numbers</a><h1>Text representation methods</h1><nav><a href="index.html" class="on">Home</a><a href="onehot.html">1 · One-Hot</a><a href="bow.html">2 · Bag of Words</a><a href="tfidf.html">3 · TF-IDF</a><a href="word2vec.html">4 · Word2Vec</a></nav></header>
 <main>
-  <!-- PAGE 1 -->
-  <section class="page" data-page="1">
-    <div class="intro"><span class="num">1</span><div><h2 class="pt">The training sentences</h2>
-      <p>Word2Vec learns only from text. It never sees a definition — it learns a word's meaning from the <b>words around it</b>. These sentences are our whole training corpus.</p></div></div>
-    <div class="two">
-      <section class="card">
-        <h2>Corpus <span class="r"><button id="bEdit" class="small" style="padding:3px 9px">Edit sentences</button></span></h2>
-        <ol class="sents big" id="sentList"></ol>
-      </section>
-      <section class="card">
-        <h2>Pre-processing</h2>
-        <ol class="howto">
-          <li><b>Lower-case</b> every word and drop punctuation.</li>
-          <li><b>Split</b> each sentence into words (tokens).</li>
-          <li><b>Remove stop words</b> such as <i>the, a, in</i> — they appear next to everything, so they carry little meaning. They are shown <span class="tok-stop">crossed out</span>.</li>
-        </ol>
-        <div class="explain" id="stopNote"></div>
-        <div class="explain" style="border-color:var(--orange)">Notice the patterns: <b>king</b> and <b>queen</b> share the words <i>rules, kingdom, wears, crown</i>; <b>cat</b> and <b>dog</b> share <i>drinks, milk, water, chases</i>. Those shared neighbours are exactly what the model will pick up.</div>
-      </section>
-    </div>
-  </section>
-
-  <!-- PAGE 2 -->
-  <section class="page" data-page="2">
-    <div class="intro"><span class="num">2</span><div><h2 class="pt">Vocabulary &amp; one-hot vectors</h2>
-      <p>Every distinct word gets an <b>ID</b>. A neural network needs numbers, so each word is fed in as a <b>one-hot vector</b>: a list of V zeros with a single 1 at the word's ID. One-hot vectors say nothing about meaning — every pair of words is equally different. Training will replace them with dense vectors.</p></div></div>
-    <section class="card">
-      <h2>Vocabulary <span class="r small muted" id="vocabCount"></span></h2>
-      <div class="chips" id="vocab"></div>
-      <div class="small muted" style="margin-top:8px">Click a word to see its one-hot vector.</div>
-    </section>
-    <section class="card" style="margin-top:16px">
-      <h2>One-hot vector of <span id="ohWord" style="color:var(--green)"></span></h2>
-      <div class="onehot" id="onehot"></div>
-      <div class="small muted" style="margin-top:8px" id="ohNote"></div>
-    </section>
-  </section>
-
-  <!-- PAGE 3 -->
-  <section class="page" data-page="3">
-    <div class="intro"><span class="num">3</span><div><h2 class="pt">Sliding window → training pairs</h2>
-      <p id="pairIntro"></p><div class="mswitch"><span class="lbl">Method</span><button data-m="skipgram">Skip-gram</button><button data-m="cbow">CBOW</button></div></div></div>
-    <section class="card" style="margin-bottom:16px">
-      <h2>Watch the window slide <span class="r small muted">sentence <select id="swSent"></select></span></h2>
-      <div class="small muted" id="swRaw"></div>
-      <div class="swStage" id="swStage"><div class="swFrame" id="swFrame"><span class="swLbl" id="swLbl"></span></div><div class="swToks" id="swToks"></div></div>
-      <div class="swCtrl">
-        <button id="swFirst" title="Back to the first word">⏮</button>
-        <button id="swBack">◀ Previous word</button>
-        <button id="swPlay" class="accent">▶ Play</button>
-        <button id="swFwd" class="primary">Next word ▶</button>
-        <span class="mswitch" id="swWin"><span class="lbl">Window</span><button data-win="1">±1</button><button data-win="2">±2</button><button data-win="3">±3</button></span>
-        <label class="small"><input type="checkbox" id="swStopT"> remove stop words</label>
-      </div>
-      <div class="small" style="margin-top:8px" id="swPos"></div>
-      <div class="small muted" style="margin-top:2px">Tip: window ±1 or keeping the stop words makes the slide easier to see. Changing these resets training.</div>
-      <div style="display:none">
-      </div>
-      <div class="two" style="margin-top:12px">
-        <div><div class="small"><b>Pairs created at this position</b></div><div class="swPairs" id="swNow"></div></div>
-        <div><div class="small"><b>All pairs from this sentence so far</b></div><div class="swPairs" id="swAll"></div></div>
-      </div>
-    </section>
-    <div class="two">
-      <section class="card">
-        <h2>All training pairs <span class="r small muted" id="pairCount"></span></h2>
-        <div class="small muted" style="margin-bottom:6px" id="pairHint"></div>
-        <div class="pairs tall" id="pairList"></div>
-      </section>
-      <section class="card">
-        <h2>Where does this pair come from?</h2>
-        <div class="small muted">Click any pair on the left.</div>
-        <div id="pairPreview"></div>
-        <div class="explain" style="margin-top:14px">
-          <b>Skip-gram</b>: center word → each neighbour (one pair per neighbour).<br>
-          <b>CBOW</b>: all neighbours together → the center word (one example per position).<br>
-          Change the method or window size on the <a href="#4" data-go="4">Settings</a> page.</div>
-      </section>
-    </div>
-  </section>
-
-  <!-- PAGE 4 -->
-  <section class="page" data-page="4">
-    <div class="intro"><span class="num">4</span><div><h2 class="pt">Training settings</h2>
-      <p>Choose the architecture and the hyper-parameters. Applying new settings rebuilds the training pairs and starts the network again from new random weights.</p></div></div>
-    <section class="card settings">
-      <div class="field">
-        <label class="l">Method</label>
-        <div class="seg">
-          <label><input type="radio" name="method" value="skipgram"><b>Skip-gram</b><span>center word → predict each context word</span></label>
-          <label><input type="radio" name="method" value="cbow"><b>CBOW</b><span>context words (averaged) → predict the center word</span></label>
-        </div>
-      </div>
-      <div class="grid2">
-        <div class="field">
-          <label class="l">Vector dimensions (N) <span class="rangeval" id="vDim"></span></label>
-          <input type="range" id="fDim" min="2" max="10">
-          <div class="hint">Size of the hidden layer = length of every word vector. With N = 2 the weights are plotted directly; above 2 the space is projected to 2-D with PCA.</div>
-        </div>
-        <div class="field">
-          <label class="l">Window size <span class="rangeval" id="vWin"></span></label>
-          <input type="range" id="fWin" min="1" max="3">
-          <div class="hint">How many words on each side of the center word count as context.</div>
-        </div>
-        <div class="field">
-          <label class="l">Learning rate <span class="rangeval" id="vLr"></span></label>
-          <input type="range" id="fLr" min="0.005" max="0.3" step="0.005">
-          <div class="hint">How big each weight update is. Too high → unstable, too low → slow.</div>
-        </div>
-        <div class="field">
-          <label class="l">Epochs <span class="rangeval" id="vEp"></span></label>
-          <input type="range" id="fEp" min="10" max="1000" step="10">
-          <div class="hint">One epoch = one pass over all training pairs.</div>
-        </div>
-      </div>
-      <div class="field" style="display:flex;gap:24px;flex-wrap:wrap">
-        <div><label class="l">Random seed</label><input type="number" id="fSeed" min="1"></div>
-        <div><label class="l">&nbsp;</label><label><input type="checkbox" id="fStop"> remove stop words (the, a, is …)</label></div>
-      </div>
-      <div class="mfoot" style="justify-content:flex-start">
-        <button class="primary" id="bApply">Apply &amp; go to training ▸</button>
-        <span class="small muted" id="cfgNow"></span>
-      </div>
-    </section>
-  </section>
-
-  <!-- PAGE 5 -->
-  <section class="page" data-page="5">
-    <div class="intro"><span class="num">5</span><div><h2 class="pt">Train the network, step by step</h2>
-      <p>Use <b>Next step ▸</b> (or →) to walk through one training pair in five phases. <b>Next pair</b> does a full update, <b>▶ Run training</b> trains for all epochs. Switch the method to compare how the network is wired.</p><div class="mswitch"><span class="lbl">Method</span><button data-m="skipgram">Skip-gram</button><button data-m="cbow">CBOW</button></div></div></div>
-    <div class="trainGrid">
-      <section class="card netwrap">
-        <h2>The neural network <span class="r small muted" id="netTitle"></span></h2>
-        <div id="net"></div>
-        <div class="legend">
-          <span><i style="background:var(--blue)"></i>positive weight</span>
-          <span><i style="background:var(--orange)"></i>negative weight</span>
-          <span>line thickness = |weight|</span>
-          <span><b style="color:var(--orange)">●</b> target word</span>
-        </div>
-      </section>
-      <section class="card details">
-        <h2>What happens in this step</h2>
-        <div class="phases" id="phases"></div>
-        <div id="stepInfo"></div>
-      </section>
-    </div>
-  </section>
-
-  <!-- PAGE 6 -->
-  <section class="page" data-page="6">
-    <div class="intro"><span class="num">6</span><div><h2 class="pt">The weights are the word vectors</h2>
-      <p>After training we throw away the output layer and keep <b>W<sub>in</sub></b>. Row <i>i</i> of W<sub>in</sub> is the embedding of word <i>i</i>: N numbers, one per dimension. Keep training (toolbar above) and watch the rows of words with similar contexts become similar.</p></div></div>
-    <div class="ministep" id="mini6"></div>
-    <section class="card">
-      <div class="hmgrid heat">
-        <div><div class="small" style="margin-bottom:4px"><b>W<sub>in</sub></b> <span class="muted">(V × N) — the embeddings we keep</span></div><div id="hmIn"></div></div>
-        <div><div class="small" style="margin-bottom:4px"><b>W<sub>out</sub>ᵀ</b> <span class="muted">(V × N) — output / "context" vectors</span></div><div id="hmOut"></div></div>
-        <div class="hmside">
-          <div class="small"><b>Selected word: <span id="selW6" style="color:var(--green)"></span></b></div>
-          <div id="selVec6"></div>
-          <div class="explain small">Orange outline = rows used in the current step. Green flash = values just updated.<br><br>Click a word name to select it, then compare its row with the rows of other words.</div>
-        </div>
-      </div>
-    </section>
-  </section>
-
-  <!-- PAGE 7 -->
-  <section class="page" data-page="7">
-    <div class="intro"><span class="num">7</span><div><h2 class="pt">Words in the vector space</h2>
-      <p>Each word is now a point. Words that appeared in similar contexts point in similar directions, measured with <b>cosine similarity</b>. Click any word to see its nearest neighbours.</p></div></div>
-    <div class="ministep" id="mini7"></div>
-    <div class="spaceGrid">
-      <section class="card">
-        <h2>Embedding space <span class="r small muted" id="spaceNote"></span></h2>
-        <div class="opts">
-          <label><input type="checkbox" id="optArrows" checked> show vectors as arrows</label>
-          <label><input type="checkbox" id="optLinks" checked> link to 3 nearest words</label>
-        </div>
-        <div id="space"></div>
-      </section>
-      <div class="col">
-        <section class="card"><h2>Similarity</h2><div class="sim" id="sim"></div></section>
-        <section class="card loss"><h2>Loss per epoch</h2><div id="lossChart"></div></section>
-      </div>
-    </div>
-  </section>
-
-  <div class="pagenav" id="pagenav"></div>
-</main>
-
-<!-- CORPUS MODAL -->
-<div class="modal" id="mCorpus">
-  <div class="box">
-    <h3>Edit training sentences</h3>
-    <div class="muted small">One sentence per line. Keep it small (≈ 10–25 sentences, &lt; 40 distinct words) so the network stays readable.</div>
-    <div class="field"><textarea id="fCorpus"></textarea></div>
-    <div class="mfoot">
-      <button id="bDefault" style="margin-right:auto">Restore example</button>
-      <button data-close>Cancel</button>
-      <button class="primary" id="bCorpusApply">Apply &amp; reset</button>
-    </div>
-  </div>
-</div>
-
-<script>
-(function(){
-"use strict";
-/* ---------------- data & config ---------------- */
-const DEFAULT_SENTENCES = [
-  "the king rules the kingdom","the queen rules the kingdom","the king wears a crown","the queen wears a crown",
-  "the prince lives in the palace","the princess lives in the palace","the king lives in the palace",
-  "the cat drinks milk","the dog drinks milk","the dog drinks water","the cat drinks water",
-  "the cat chases a mouse","the dog chases a cat",
-  "i eat an apple","i eat a banana","i eat an orange","an apple is a sweet fruit","a banana is a sweet fruit"
-];
-const STOP = new Set("the a an and is are am in of i to on at it this that be was were".split(" "));
-const PHASES = ["Pick window","Hidden layer","Output + softmax","Error & loss","Update weights"];
-const MAX_HIST = 2000;
-
-const S = {
-  cfg:{method:"skipgram",dim:2,window:2,lr:0.05,epochs:300,seed:7,stop:true},
-  sentences:DEFAULT_SENTENCES.slice(),
-  tokens:[], raw:[], vocab:[], id:{}, examples:[],
-  Win:[], Wout:[],
-  epoch:0, ex:0, phase:-1, cur:null,
-  lossHist:[], eSum:0, eCnt:0,
-  hist:[], running:false, done:false, selected:null, lastUpdated:null
-};
-
-/* ---------------- helpers ---------------- */
-function mulberry(a){return function(){a|=0;a=a+0x6D2B79F5|0;let t=Math.imul(a^a>>>15,1|a);t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296;};}
-const $ = s=>document.querySelector(s);
-const esc = s=>String(s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
-const f2 = v=>(v>=0?" ":"")+v.toFixed(2);
-const f3 = v=>v.toFixed(3);
-function wColor(v,scale){
-  const a=Math.min(1,Math.abs(v)/(scale||1));
-  return v>=0?`rgba(68,114,196,${(0.08+0.85*a).toFixed(3)})`:`rgba(237,125,49,${(0.08+0.85*a).toFixed(3)})`;
-}
-function txtColor(v,scale){return Math.abs(v)/(scale||1)>0.55?"#fff":"#1F2A3A";}
-function maxAbs(M){let m=1e-9;for(const r of M)for(const v of r)m=Math.max(m,Math.abs(v));return m;}
-
-/* ---------------- corpus → vocab → pairs ---------------- */
-function prepare(){
-  S.raw = S.sentences.map(s=>s.toLowerCase().replace(/[^a-z0-9'\s-]/g," ").split(/\s+/).filter(Boolean));
-  S.tokens = S.raw.map(t=>S.cfg.stop?t.filter(w=>!STOP.has(w)):t);
-  S.vocab=[];S.id={};
-  S.tokens.forEach(t=>t.forEach(w=>{if(!(w in S.id)){S.id[w]=S.vocab.length;S.vocab.push(w);}}));
-  S.examples=[];
-  const W=S.cfg.window;
-  S.tokens.forEach((t,si)=>t.forEach((w,p)=>{
-    const ctxPos=[];
-    for(let d=-W;d<=W;d++){if(d!==0&&p+d>=0&&p+d<t.length)ctxPos.push(p+d);}
-    if(!ctxPos.length)return;
-    if(S.cfg.method==="skipgram"){
-      ctxPos.forEach(cp=>S.examples.push({s:si,pos:p,ctxPos,tPos:cp,input:[S.id[w]],target:S.id[t[cp]]}));
-    }else{
-      S.examples.push({s:si,pos:p,ctxPos,tPos:p,input:ctxPos.map(cp=>S.id[t[cp]]),target:S.id[w]});
-    }
-  }));
-}
-function initWeights(){
-  const r=mulberry(S.cfg.seed), V=S.vocab.length, N=S.cfg.dim;
-  S.Win = Array.from({length:V},()=>Array.from({length:N},()=>(r()-0.5)));
-  S.Wout= Array.from({length:N},()=>Array.from({length:V},()=>(r()-0.5)));
-  S.epoch=0;S.ex=0;S.phase=-1;S.cur=null;S.lossHist=[];S.eSum=0;S.eCnt=0;S.hist=[];S.done=false;S.lastUpdated=null;
-  if(S.selected===null||!S.vocab.includes(S.selected))S.selected=S.vocab.includes("king")?"king":S.vocab[0];
-}
-function fullReset(){stop();prepare();initWeights();buildNet();renderAll();}
-
-/* ---------------- maths ---------------- */
-function forward(ex){
-  const N=S.cfg.dim,V=S.vocab.length,h=new Array(N).fill(0);
-  ex.input.forEach(i=>{for(let k=0;k<N;k++)h[k]+=S.Win[i][k]/ex.input.length;});
-  const u=new Array(V);
-  for(let j=0;j<V;j++){let s=0;for(let k=0;k<N;k++)s+=h[k]*S.Wout[k][j];u[j]=s;}
-  const m=Math.max(...u);const e=u.map(x=>Math.exp(x-m));const z=e.reduce((a,b)=>a+b,0);
-  const y=e.map(x=>x/z);
-  const err=y.slice();err[ex.target]-=1;
-  return {h,u,y,err,loss:-Math.log(Math.max(y[ex.target],1e-12))};
-}
-function update(ex,f){
-  const N=S.cfg.dim,V=S.vocab.length,lr=S.cfg.lr;
-  const gh=new Array(N).fill(0);
-  for(let k=0;k<N;k++){let s=0;for(let j=0;j<V;j++)s+=S.Wout[k][j]*f.err[j];gh[k]=s;}
-  const uniq=[...new Set(ex.input)];
-  const before=uniq.map(i=>S.Win[i].slice());
-  const outBefore=S.Wout.map(r=>r[ex.target]);
-  for(let k=0;k<N;k++)for(let j=0;j<V;j++)S.Wout[k][j]-=lr*f.h[k]*f.err[j];
-  ex.input.forEach(i=>{for(let k=0;k<N;k++)S.Win[i][k]-=lr*gh[k]/ex.input.length;});
-  const after=uniq.map(i=>S.Win[i].slice());
-  const outAfter=S.Wout.map(r=>r[ex.target]);
-  const lossAfter=forward(ex).loss;
-  return {gh,uniq,before,after,outBefore,outAfter,lossAfter};
-}
-
-/* ---------------- stepping ---------------- */
-function snapshot(){
-  S.hist.push({Win:S.Win.map(r=>r.slice()),Wout:S.Wout.map(r=>r.slice()),epoch:S.epoch,ex:S.ex,lossHist:S.lossHist.slice(),eSum:S.eSum,eCnt:S.eCnt,done:S.done});
-  if(S.hist.length>MAX_HIST)S.hist.shift();
-}
-function restore(h){
-  S.Win=h.Win.map(r=>r.slice());S.Wout=h.Wout.map(r=>r.slice());
-  S.epoch=h.epoch;S.ex=h.ex;S.lossHist=h.lossHist.slice();S.eSum=h.eSum;S.eCnt=h.eCnt;S.done=h.done;
-}
-function advancePointer(){
-  S.ex++;
-  if(S.ex>=S.examples.length){S.ex=0;S.epoch++;}
-}
-// begin a new example (phase 0)
-function beginExample(){
-  if(S.done||!S.examples.length)return false;
-  snapshot();
-  const ex=S.examples[S.ex];
-  S.cur={exIndex:S.ex,epoch:S.epoch,ex,f:forward(ex),u:null};
-  S.phase=0;return true;
-}
-function applyCurrentUpdate(){
-  const c=S.cur;
-  c.u=update(c.ex,c.f);
-  S.eSum+=c.f.loss;S.eCnt++;
-  S.lastUpdated=c.u.uniq.slice();
-  c.applied=true;
-  if(c.exIndex===S.examples.length-1){
-    S.lossHist.push(S.eSum/Math.max(1,S.eCnt));S.eSum=0;S.eCnt=0;
-    if(c.epoch+1>=S.cfg.epochs)S.done=true;
-  }
-}
-function nextPhase(){
-  if(S.phase===-1||S.phase===4){
-    if(S.phase===4)advancePointer();
-    if(!beginExample()){S.phase=-1;S.cur=null;return;}
-    return;
-  }
-  S.phase++;
-  if(S.phase===4)applyCurrentUpdate();
-}
-function finishPair(){ // complete current pair (or a new one) through phase 4
-  if(S.phase===-1||S.phase===4){
-    if(S.phase===4)advancePointer();
-    if(!beginExample()){S.phase=-1;S.cur=null;return false;}
-  }
-  if(S.phase<4){S.phase=4;applyCurrentUpdate();}
-  return true;
-}
-function prevPhase(){
-  if(S.phase>0&&S.phase<4){S.phase--;return;}
-  if(S.phase===4){ // undo update, back to phase 3
-    const h=S.hist[S.hist.length-1];restore(h);
-    S.cur.f=forward(S.cur.ex);S.cur.u=null;S.cur.applied=false;S.lastUpdated=null;S.phase=3;return;
-  }
-  if(S.phase===0){ // go to previous pair, fully applied (phase 4)
-    if(S.hist.length<=1&&!(S.cur.exIndex===0&&S.cur.epoch===0))return;
-    S.hist.pop(); // this example's snapshot
-    const h=S.hist[S.hist.length-1];
-    if(!h){ // back to very start
-      initStateFromSnapshotStart();return;
-    }
-    restore(h);
-    const ex=S.examples[S.ex];
-    S.cur={exIndex:S.ex,epoch:S.epoch,ex,f:forward(ex)};
-    applyCurrentUpdate();S.phase=4;
-  }
-}
-function initStateFromSnapshotStart(){
-  // first snapshot was popped: re-create initial weights (deterministic seed) only if we are at the very beginning
-  initWeights();
-}
-
-/* ---------------- run loop ---------------- */
-let raf=null;
-function run(){
-  if(S.done)return;
-  S.running=true;updateButtons();
-  const loop=()=>{
-    if(!S.running)return;
-    const n=+$("#speed").value;
-    for(let i=0;i<n;i++){if(S.done||!finishPair())break;}
-    if(S.done){stop();}
-    renderAll();
-    if(S.running)raf=requestAnimationFrame(loop);
-  };
-  raf=requestAnimationFrame(loop);
-}
-function stop(){S.running=false;if(raf)cancelAnimationFrame(raf);raf=null;updateButtons();}
-
-/* ---------------- network SVG ---------------- */
-let NET=null;
-function buildNet(){
-  const V=S.vocab.length,N=S.cfg.dim;
-  const rowH=Math.max(16,Math.min(26,560/V));
-  const H=Math.max(V*rowH,N*44)+70, W=800;
-  const xi=150,xh=380,xo=600, top=50;
-  const yIn=i=>top+ (i+0.5)*((H-top-20)/V);
-  const hSp=Math.min(48,(H-top-20)/N);
-  const hTop=top+((H-top-20)-hSp*N)/2;
-  const yH=k=>hTop+(k+0.5)*hSp;
-  const ns="http://www.w3.org/2000/svg";
-  const svg=document.createElementNS(ns,"svg");svg.setAttribute("viewBox",`0 0 ${W} ${H}`);
-  const mk=(tag,attrs,parent)=>{const e=document.createElementNS(ns,tag);for(const k in attrs)e.setAttribute(k,attrs[k]);(parent||svg).appendChild(e);return e;};
-  const isSG=S.cfg.method==="skipgram";
-  // headers
-  mk("text",{x:xi,y:20,"text-anchor":"middle","font-size":13,"font-weight":700,fill:"#44546A"}).textContent=isSG?"Input: center word (one-hot)":"Input: context words (one-hot)";
-  mk("text",{x:xh,y:20,"text-anchor":"middle","font-size":13,"font-weight":700,fill:"#44546A"}).textContent=`Hidden layer h (N = ${N})`;
-  mk("text",{x:xo,y:20,"text-anchor":"middle","font-size":13,"font-weight":700,fill:"#44546A"}).textContent=isSG?"Output: context word (softmax)":"Output: center word (softmax)";
-  mk("text",{x:(xi+xh)/2,y:38,"text-anchor":"middle","font-size":11.5,fill:"#6B7788"}).textContent=`W_in  (${V} × ${N})`;
-  mk("text",{x:(xh+xo)/2,y:38,"text-anchor":"middle","font-size":11.5,fill:"#6B7788"}).textContent=`W_out  (${N} × ${V})`;
-  const gE1=mk("g",{}),gE2=mk("g",{}),gN=mk("g",{});
-  const e1=[],e2=[];
-  for(let i=0;i<V;i++){e1[i]=[];for(let k=0;k<N;k++)e1[i][k]=mk("line",{x1:xi+9,y1:yIn(i),x2:xh-13,y2:yH(k),"stroke-linecap":"round"},gE1);}
-  for(let k=0;k<N;k++){e2[k]=[];for(let j=0;j<V;j++)e2[k][j]=mk("line",{x1:xh+13,y1:yH(k),x2:xo-9,y2:yIn(j),"stroke-linecap":"round"},gE2);}
-  const inN=[],inL=[],inV=[],hN=[],hV=[],oN=[],oL=[],oB=[],oP=[];
-  for(let i=0;i<V;i++){
-    inL[i]=mk("text",{x:xi-16,y:yIn(i)+4,"text-anchor":"end","font-size":12,fill:"#1F2A3A",style:"cursor:pointer"},gN);inL[i].textContent=S.vocab[i];
-    inL[i].addEventListener("click",()=>{S.selected=S.vocab[i];renderAll();});
-    inV[i]=mk("text",{x:xi-94,y:yIn(i)+4,"text-anchor":"end","font-size":10.5,fill:"#9AA4B2","font-family":"Consolas,monospace"},gN);
-    inN[i]=mk("circle",{cx:xi,cy:yIn(i),r:Math.min(8,rowH/2-1.5),stroke:"#44546A","stroke-width":1},gN);
-    oN[i]=mk("circle",{cx:xo,cy:yIn(i),r:Math.min(8,rowH/2-1.5),stroke:"#44546A","stroke-width":1},gN);
-    oL[i]=mk("text",{x:xo+16,y:yIn(i)+4,"font-size":12,fill:"#1F2A3A"},gN);oL[i].textContent=S.vocab[i];
-    mk("rect",{x:xo+86,y:yIn(i)-5,width:60,height:10,rx:2,fill:"#EEF1F6"},gN);
-    oB[i]=mk("rect",{x:xo+86,y:yIn(i)-5,width:0,height:10,rx:2,fill:"#4472C4"},gN);
-    oP[i]=mk("text",{x:xo+150,y:yIn(i)+4,"font-size":10.5,fill:"#6B7788","font-family":"Consolas,monospace"},gN);
-  }
-  for(let k=0;k<N;k++){
-    hN[k]=mk("circle",{cx:xh,cy:yH(k),r:13,stroke:"#44546A","stroke-width":1.2},gN);
-    hV[k]=mk("text",{x:xh,y:yH(k)+4,"text-anchor":"middle","font-size":9.5,"font-family":"Consolas,monospace",fill:"#1F2A3A"},gN);
-    mk("text",{x:xh+18,y:yH(k)-10,"font-size":9.5,fill:"#9AA4B2"},gN).textContent="d"+(k+1);
-  }
-  const avgT=mk("text",{x:xh,y:hTop-6,"text-anchor":"middle","font-size":11,fill:"#ED7D31","font-weight":700},gN);
-  const pHead=mk("text",{x:xo+86,y:top-4,"font-size":10.5,fill:"#6B7788"},gN);pHead.textContent="p(word)";
-  const inHead=mk("text",{x:xi-94,y:top-4,"text-anchor":"end","font-size":10.5,fill:"#6B7788"},gN);inHead.textContent="x";
-  $("#net").innerHTML="";$("#net").appendChild(svg);
-  NET={e1,e2,inN,inL,inV,hN,hV,oN,oL,oB,oP,avgT};
-  $("#netTitle").textContent=isSG?"Skip-gram: one word in → its neighbours out":"CBOW: neighbours in → the middle word out";
-}
-function renderNet(){
-  if(!NET)return;
-  const V=S.vocab.length,N=S.cfg.dim,ph=S.phase,c=S.cur;
-  const sc=Math.max(maxAbs(S.Win),maxAbs(S.Wout));
-  const inputs=c?new Set(c.ex.input):new Set();
-  const tgt=c?c.ex.target:-1;
-  const showH=c&&ph>=1, showO=c&&ph>=2;
-  for(let i=0;i<V;i++)for(let k=0;k<N;k++){
-    const w=S.Win[i][k],ln=NET.e1[i][k],act=inputs.has(i);
-    ln.setAttribute("stroke",wColor(w,sc));
-    ln.setAttribute("stroke-width",(act?1+3.2*Math.abs(w)/sc:0.3+0.9*Math.abs(w)/sc).toFixed(2));
-    ln.setAttribute("opacity",c?(act?1:0.12):0.45);
-  }
-  for(let k=0;k<N;k++)for(let j=0;j<V;j++){
-    const w=S.Wout[k][j],ln=NET.e2[k][j];
-    ln.setAttribute("stroke",wColor(w,sc));
-    const emph=showO&&j===tgt;
-    ln.setAttribute("stroke-width",(emph?1+3.2*Math.abs(w)/sc:0.3+1.1*Math.abs(w)/sc).toFixed(2));
-    ln.setAttribute("opacity",!c?0.45:(ph<1?0.12:(emph?1:(showO?0.35:0.25))));
-  }
-  const cnt={};if(c)c.ex.input.forEach(i=>cnt[i]=(cnt[i]||0)+1);
-  for(let i=0;i<V;i++){
-    const act=inputs.has(i);
-    NET.inN[i].setAttribute("fill",act?"#4472C4":"#fff");
-    NET.inV[i].textContent=c?(act?(c.ex.input.length>1?"1 (×1/"+c.ex.input.length+")":"1"):"0"):"";
-    NET.inV[i].setAttribute("fill",act?"#4472C4":"#C3CAD4");
-    NET.inL[i].setAttribute("font-weight",act?"700":(S.selected===S.vocab[i]?"700":"400"));
-    NET.inL[i].setAttribute("fill",act?"#4472C4":(S.selected===S.vocab[i]?"#2E9E5B":"#1F2A3A"));
-    const isT=i===tgt&&c;
-    NET.oN[i].setAttribute("fill",isT?"#ED7D31":"#fff");
-    NET.oN[i].setAttribute("stroke",isT?"#ED7D31":"#44546A");
-    NET.oN[i].setAttribute("stroke-width",isT?2.5:1);
-    NET.oL[i].setAttribute("font-weight",isT?"700":"400");
-    NET.oL[i].setAttribute("fill",isT?"#ED7D31":"#1F2A3A");
-    if(showO){
-      const p=(ph===4&&c.u)?forward(c.ex).y[i]:c.f.y[i];
-      NET.oB[i].setAttribute("width",(60*p).toFixed(1));
-      NET.oB[i].setAttribute("fill",isT?"#ED7D31":"#4472C4");
-      NET.oP[i].textContent=p.toFixed(2);
-    }else{NET.oB[i].setAttribute("width",0);NET.oP[i].textContent="";}
-  }
-  const hs=showH?c.f.h:null;const hsc=hs?Math.max(1e-9,...hs.map(Math.abs)):1;
-  for(let k=0;k<N;k++){
-    if(hs){NET.hN[k].setAttribute("fill",wColor(hs[k],hsc));NET.hV[k].textContent=hs[k].toFixed(2);NET.hV[k].setAttribute("fill",txtColor(hs[k],hsc));}
-    else{NET.hN[k].setAttribute("fill","#fff");NET.hV[k].textContent="";}
-  }
-  NET.avgT.textContent=(showH&&S.cfg.method==="cbow")?"h = average of "+c.ex.input.length+" rows":(showH?"h = row of W_in":"");
-}
-
-/* ---------------- side panels ---------------- */
-function renderLeft(){
-  const curS=S.cur?S.cur.ex.s:-1;
-  $("#sentList").innerHTML=S.raw.map((t,i)=>`<li class="${i===curS?"cur":""}">${t.map(w=>S.cfg.stop&&STOP.has(w)?`<span class="tok-stop">${esc(w)}</span>`:esc(w)).join(" ")}</li>`).join("");
-  $("#stopNote").innerHTML=(S.cfg.stop?"Stop-word removal is <b>on</b>.":"Stop-word removal is <b>off</b> — every word is kept.")+` After pre-processing: <b>${S.tokens.reduce((a,t)=>a+t.length,0)}</b> tokens, <b>${S.vocab.length}</b> distinct words.`;
-  // page 2: one-hot
-  const si=S.vocab.indexOf(S.selected);
-  $("#ohWord").textContent=`“${S.selected}” (ID ${si})`;
-  $("#onehot").innerHTML=S.vocab.map((w,i)=>`<div class="${i===si?"one":""}" data-w="${esc(w)}" title="${esc(w)}">${i===si?1:0}<small>${i}·${esc(w)}</small></div>`).join("");
-  $("#ohNote").innerHTML=`Length V = ${S.vocab.length}. Multiplying this vector by the weight matrix W<sub>in</sub> (V × N) simply picks out row ${si} — that row will become the dense embedding of “${esc(S.selected)}”.`;
-  // page 3 intro
-  $("#pairIntro").innerHTML=S.cfg.method==="skipgram"?
-    `A window of ±${S.cfg.window} words slides along every sentence. With <b>Skip-gram</b>, the word in the middle is the <b>input</b> and each neighbour inside the window becomes a separate <b>target</b>. Every pair is one training example.`:
-    `A window of ±${S.cfg.window} words slides along every sentence. With <b>CBOW</b>, all neighbours inside the window are the <b>input</b> together, and the word in the middle is the <b>target</b> to predict. Every position is one training example.`;
-  if(pvIndex>=S.examples.length)pvIndex=0;
-  if(typeof page!=="undefined"&&page===3&&!S.running)renderSW();
-  renderPreview();
-  // page 4 summary
-  $("#cfgNow").innerHTML=`Current: ${S.cfg.method==="skipgram"?"Skip-gram":"CBOW"} · N = ${S.cfg.dim} · window ±${S.cfg.window} · lr ${S.cfg.lr} · ${S.cfg.epochs} epochs`;
-  // pages 6 & 7: current step summary
-  const c=S.cur;
-  const mini=c?`<b>Now training:</b> epoch ${c.epoch+1}, pair ${c.exIndex+1}/${S.examples.length} — ${S.cfg.method==="skipgram"?`<b>${esc(S.vocab[c.ex.input[0]])}</b> → <b>${esc(S.vocab[c.ex.target])}</b>`:`[<b>${c.ex.input.map(i=>esc(S.vocab[i])).join(", ")}</b>] → <b>${esc(S.vocab[c.ex.target])}</b>`} · phase ${S.phase+1}: ${PHASES[S.phase]}${S.done?" · <b style='color:var(--green)'>training finished</b>":""}`
-    :(S.done?"<b style='color:var(--green)'>Training finished.</b>":"Not trained yet — weights are still <b>random</b>. Use the toolbar above to train (▶ Run training) and watch this page change.");
-  $("#mini6").innerHTML=mini;$("#mini7").innerHTML=mini;
-  $("#selW6").textContent=S.selected;
-  if(si>=0){const sc=Math.max(maxAbs(S.Win),1e-9);$("#selVec6").innerHTML=vecHTML(S.Win[si],sc)+`<div class="small muted">|v| = ${Math.hypot(...S.Win[si]).toFixed(3)}</div>`;}
-  $("#vocabCount").textContent="V = "+S.vocab.length+" words";
-  $("#vocab").innerHTML=S.vocab.map((w,i)=>`<span class="chip ${w===S.selected?"sel":""}" data-w="${esc(w)}">${i}: ${esc(w)}</span>`).join("");
-  const isSG=S.cfg.method==="skipgram";
-  $("#pairCount").textContent=S.examples.length+" per epoch";
-  $("#pairHint").innerHTML=isSG?`Skip-gram makes one pair (center → context) for every neighbour inside the window (±${S.cfg.window}).`:`CBOW makes one example per word: all neighbours inside ±${S.cfg.window} → the center word.`;
-}
-let pvIndex=0;
-/* ---- sliding window demo (page 3) ---- */
-const SW={s:0,p:0,timer:null,key:""};
-function pairText(e){const inp=e.input.map(i=>S.vocab[i]);return S.cfg.method==="skipgram"?`${inp[0]} → ${S.vocab[e.target]}`:`[${inp.join(", ")}] → ${S.vocab[e.target]}`;}
-function swStop(){if(SW.timer){clearInterval(SW.timer);SW.timer=null;}const b=$("#swPlay");if(b)b.textContent="▶ Play";}
-function swStep(d){
-  const n=(S.tokens[SW.s]||[]).length;
-  SW.p+=d;
-  if(SW.p>=n){ // next sentence
-    let k=SW.s;do{k=(k+1)%S.tokens.length;}while(S.tokens[k].length<2&&k!==SW.s);SW.s=k;SW.p=0;
-  }
-  if(SW.p<0)SW.p=0;
-  renderSW();
-}
-function renderSW(){
-  const key=S.sentences.join("|")+S.cfg.stop;
-  const sel=$("#swSent");
-  if(SW.key!==key){SW.key=key;sel.innerHTML=S.raw.map((t,i)=>`<option value="${i}">${i+1}. ${esc(t.join(" "))}</option>`).join("");if(SW.s>=S.raw.length)SW.s=0;SW.p=0;}
-  sel.value=SW.s;
-  document.querySelectorAll("#swWin button").forEach(b=>b.classList.toggle("on",+b.dataset.win===S.cfg.window));
-  $("#swStopT").checked=S.cfg.stop;
-  const toks=S.tokens[SW.s]||[],W=S.cfg.window,isSG=S.cfg.method==="skipgram";
-  if(SW.p>=toks.length)SW.p=Math.max(0,toks.length-1);
-  const p=SW.p,lo=Math.max(0,p-W),hi=Math.min(toks.length-1,p+W);
-  $("#swRaw").innerHTML=`Original: “${esc(S.raw[SW.s].join(" "))}”${S.cfg.stop?" — stop words removed below":""}`;
-  $("#swToks").innerHTML=toks.map((w,i)=>`<span class="${i===p?"center":(i>=lo&&i<=hi?"ctx":"out")}">${esc(w)}</span>`).join("");
-  const box=$("#swToks"),fr=$("#swFrame"),els=box.children;
-  if(els.length){
-    const a=els[lo],b=els[hi];
-    fr.style.display="";fr.style.left=(box.offsetLeft+a.offsetLeft-7)+"px";fr.style.width=(b.offsetLeft+b.offsetWidth-a.offsetLeft+14)+"px";
-    $("#swLbl").textContent=`window ±${W}`;
-  }else fr.style.display="none";
-  const ctx=toks.filter((_,i)=>i>=lo&&i<=hi&&i!==p);
-  $("#swPos").innerHTML=toks.length?`Position <b>${p+1}</b> of ${toks.length} · center word <b style="color:var(--blue)">${esc(toks[p])}</b> · context <b style="color:#a64b0c">${ctx.map(esc).join(", ")||"–"}</b>`:"This sentence has no words left after pre-processing.";
-  const mine=S.examples.map((e,i)=>({e,i})).filter(o=>o.e.s===SW.s);
-  const now=mine.filter(o=>o.e.pos===p),sofar=mine.filter(o=>o.e.pos<=p);
-  $("#swNow").innerHTML=now.length?now.map(o=>`<span class="new" data-p="${o.i}">${esc(pairText(o.e))}</span>`).join(""):`<span>no pairs (no neighbours)</span>`;
-  $("#swAll").innerHTML=sofar.map(o=>`<span class="${o.e.pos===p?"new":""}" data-p="${o.i}">${esc(pairText(o.e))}</span>`).join("")+`<span style="background:none">${sofar.length} / ${mine.length} ${isSG?"pairs":"examples"}</span>`;
-}
-function renderPreview(){
-  const ex=S.examples[pvIndex];const box=$("#pairPreview");
-  if(!ex){box.innerHTML="";return;}
-  const toks=S.tokens[ex.s],isSG=S.cfg.method==="skipgram";
-  const sent=`<div class="sentence" style="font-size:16px">${toks.map((w,p)=>{let cl="";if(p===ex.pos)cl="center";else if(ex.ctxPos.includes(p))cl=(isSG&&p===ex.tPos)?"ctx target":"ctx";return `<span class="${cl}">${esc(w)}</span>`;}).join("")}</div>`;
-  const inp=ex.input.map(i=>S.vocab[i]);
-  box.innerHTML=`<div class="wp small muted">Pair ${pvIndex+1} · sentence ${ex.s+1}: “${esc(S.raw[ex.s].join(" "))}”</div>${sent}
-   <div class="lossbox"><div><span class="small muted">input${inp.length>1?"s":""}</span><b style="color:var(--blue)">${inp.map(esc).join(", ")}</b></div><div><span class="small muted">target (what to predict)</span><b style="color:var(--orange)">${esc(S.vocab[ex.target])}</b></div></div>
-   <div class="small muted"><span class="badge sg">blue</span> = center word &nbsp; <span class="badge cbow">orange dashed</span> = inside the window ${isSG?"&nbsp; <b style='color:var(--orange)'>solid orange</b> = the target of this pair":""}</div>`;
-  document.querySelectorAll("#pairList .pv").forEach(e=>e.classList.remove("pv"));
-  const el=$("#pairList").children[pvIndex];if(el)el.classList.add("pv");
-}
-function renderPairs(){
-  const box=$("#pairList");
-  if(box.childElementCount!==S.examples.length||box.dataset.k!==S.cfg.method+S.cfg.window+S.vocab.length){
-    box.dataset.k=S.cfg.method+S.cfg.window+S.vocab.length;
-    box.innerHTML=S.examples.map((e,i)=>{
-      const inp=[...e.input].map(x=>S.vocab[x]).join(", ");
-      return `<div data-p="${i}">${String(i+1).padStart(3," ")}. ${S.cfg.method==="skipgram"?esc(inp)+" → "+esc(S.vocab[e.target]):"["+esc(inp)+"] → "+esc(S.vocab[e.target])}</div>`;
-    }).join("");
-  }
-  const prev=box.querySelector(".cur");if(prev)prev.classList.remove("cur");
-  if(S.cur){const el=box.children[S.cur.exIndex];if(el){el.classList.add("cur");{const top=el.offsetTop-box.offsetTop;if(top<box.scrollTop||top>box.scrollTop+box.clientHeight-20)box.scrollTop=top-60;}}}
-}
-function vecHTML(v,sc){return `<div class="vec">${v.map((x,k)=>`<span title="d${k+1}" style="background:${wColor(x,sc)};color:${txtColor(x,sc)}">${f2(x)}</span>`).join("")}</div>`;}
-function renderStep(){
-  const ph=S.phase,c=S.cur;
-  $("#phases").innerHTML=PHASES.map((p,i)=>`<div class="${i===ph?"on":(i<ph?"done":"")}">${i+1}<br>${p}</div>`).join("");
-  const isSG=S.cfg.method==="skipgram";
-  const box=$("#stepInfo");
-  if(!c){
-    box.innerHTML=S.done?`<div class="explain"><b>Training finished.</b> ${S.cfg.epochs} epochs done. Look at section 7: words that appeared in similar contexts now have similar vectors and sit close together. Click any word to see its nearest neighbours.</div>`:
-    `<div class="explain">The network starts with <b>random weights</b>, so word vectors mean nothing yet.<br><br>
-    Press <b>Next step ▸</b> to walk through one training pair phase by phase, <b>Next pair</b> to do one full update, or <b>▶ Run training</b> to train for all ${S.cfg.epochs} epochs and watch the vectors move.</div>
-    <div class="small muted"><b>${isSG?"Skip-gram":"CBOW"}</b> · N = ${S.cfg.dim} dims · window ±${S.cfg.window} · lr ${S.cfg.lr} · ${S.examples.length} pairs/epoch</div>`;
-    return;
-  }
-  const ex=c.ex, toks=S.tokens[ex.s], V=S.vocab.length, f=c.f;
-  const tw=S.vocab[ex.target];
-  const inW=[...ex.input].map(i=>S.vocab[i]);
-  const cw=toks[ex.pos];
-  let sent=`<div class="sentence">${toks.map((w,p)=>{
-    let cl="";
-    if(p===ex.pos)cl="center";
-    else if(ex.ctxPos.includes(p))cl=(isSG&&p===ex.tPos)?"ctx target":"ctx";
-    return `<span class="${cl}">${esc(w)}</span>`;}).join("")}</div>`;
-  let h=(S.done?`<div class="explain" style="border-color:var(--green)"><b>Training finished</b> (${S.cfg.epochs} epochs). See section 7 — words used in similar contexts now sit close together.</div>`:"")+`<div class="small muted">Epoch ${c.epoch+1} · pair ${c.exIndex+1} of ${S.examples.length} · sentence ${ex.s+1}</div>`+sent;
-  const sc=Math.max(maxAbs(S.Win),1e-9);
-  if(ph===0){
-    h+=isSG?`<div class="explain">The window (±${S.cfg.window}) slides over the sentence. <b style="color:var(--blue)">${esc(cw)}</b> is the center word.
-      Skip-gram makes the training pair <b>${esc(cw)} → ${esc(tw)}</b>: <i>“given ${esc(cw)}, predict that ${esc(tw)} is nearby.”</i><br><br>
-      Input = one-hot vector with a 1 at position ${ex.input[0]} (<b>${esc(cw)}</b>), 0 everywhere else.</div>`:
-      `<div class="explain">The window (±${S.cfg.window}) slides over the sentence. The context words <b style="color:#a64b0c">${inW.map(esc).join(", ")}</b> are the input, and CBOW must predict the missing center word <b style="color:var(--blue)">${esc(tw)}</b>.<br><br>
-      Input = ${ex.input.length} one-hot vectors (one per context word).</div>`;
-  }
-  if(ph>=1){
-    if(ph===1)h+=isSG?`<div class="explain">Multiplying a one-hot vector by <b>W<sub>in</sub></b> simply <b>selects one row</b>. So the hidden layer is
-      <code>h = W_in[“${esc(cw)}”]</code> — this row <b>is</b> the current embedding of “${esc(cw)}”. There is no activation function: the hidden layer is linear.</div>`:
-      `<div class="explain">Each context word selects its own row of <b>W<sub>in</sub></b>. CBOW <b>averages</b> those rows:
-      <code>h = (${inW.map(w=>"W_in[“"+esc(w)+"”]").join(" + ")}) / ${ex.input.length}</code>. No activation function — the hidden layer is linear.</div>`;
-    if(!isSG&&ph===1){[...new Set(ex.input)].forEach(i=>{h+=`<div class="small"><b>W<sub>in</sub>[${esc(S.vocab[i])}]</b></div>`+vecHTML(S.Win[i],sc);});}
-    h+=`<div class="small"><b>h</b> (hidden layer, ${S.cfg.dim} values)</div>`+vecHTML(f.h,sc);
-  }
-  if(ph===2){
-    h+=`<div class="explain">Each output word j gets a score <code>u<sub>j</sub> = h · W_out[:, j]</code> (a dot product), and <b>softmax</b> turns all ${V} scores into probabilities that add up to 1.
-     We want the target <b style="color:var(--orange)">${esc(tw)}</b> to get a high probability. Right now it gets <b>${(f.y[ex.target]*100).toFixed(1)}%</b>.</div>`;
-  }
-  if(ph>=2&&ph<4){
-    const order=[...Array(V).keys()].sort((a,b)=>f.y[b]-f.y[a]);
-    const mx=Math.max(...f.y);
-    h+=`<div class="small"><b>Predicted probabilities</b> (sorted)</div><div class="probs">${order.map(j=>`<span class="${j===ex.target?"t":""}">${esc(S.vocab[j])}</span><div class="bar"><i style="width:${(100*f.y[j]/mx).toFixed(1)}%"></i></div><span class="mono">${ph===3?f2(f.err[j]):f.y[j].toFixed(3)}</span>`).join("")}</div>`;
-    if(ph===3)h+=`<div class="small muted" style="margin-top:4px">Numbers above show the error <code>e = y − t</code> for each word.</div>`;
-  }
-  if(ph===3){
-    h=h.replace(`<div class="small"><b>Predicted probabilities</b>`,`<div class="explain">Compare the prediction <b>y</b> with the true answer <b>t</b> (1 for <b style="color:var(--orange)">${esc(tw)}</b>, 0 for every other word).
-      The error is <code>e = y − t</code>: negative for the target (push its score up), positive for all others (push them down).<br>
-      Loss (cross-entropy) <code>= −log p(${esc(tw)}) = −log(${f.y[ex.target].toFixed(3)}) = ${f.loss.toFixed(3)}</code></div>
-      <div class="lossbox"><div><span class="small muted">p(target)</span><b>${(f.y[ex.target]*100).toFixed(1)}%</b></div><div><span class="small muted">loss</span><b>${f.loss.toFixed(3)}</b></div></div>
-      <div class="small"><b>Predicted probabilities</b>`);
-  }
-  if(ph===4&&c.u){
-    const u=c.u,yNew=forward(ex).y[ex.target];
-    h+=`<div class="explain"><b>Backpropagation</b> (learning rate η = ${S.cfg.lr}):<br>
-      • <code>W_out[:, j] −= η · h · e<sub>j</sub></code> — the output vector of <b>${esc(tw)}</b> moves <i>toward</i> h; the others move away.<br>
-      • <code>W_in[${isSG?"“"+esc(cw)+"”":"each context word"}] −= η · (W_out · e)${isSG?"":" / "+ex.input.length}</code> — the embedding row${u.uniq.length>1?"s":""} that made the prediction ${u.uniq.length>1?"are":"is"} nudged so “${esc(tw)}” becomes more likely.<br>
-      Only ${u.uniq.length} row${u.uniq.length>1?"s":""} of W<sub>in</sub> changed (highlighted in section 6).</div>
-      <div class="lossbox"><div><span class="small muted">p(${esc(tw)}) before → after</span><b>${(f.y[ex.target]*100).toFixed(1)}% → ${(yNew*100).toFixed(1)}%</b></div><div><span class="small muted">loss before → after</span><b>${f.loss.toFixed(3)} → ${u.lossAfter.toFixed(3)}</b></div></div>`;
-    u.uniq.forEach((i,ri)=>{
-      h+=`<div class="small" style="margin-top:6px"><b>Embedding of “${esc(S.vocab[i])}”</b> (row ${i} of W<sub>in</sub>)</div>
-      <table class="upd"><tr><th>dim</th><th>before</th><th>after</th><th>change</th></tr>${u.before[ri].map((b,k)=>{const a=u.after[ri][k],d=a-b;return `<tr><td>d${k+1}</td><td>${f3(b)}</td><td>${f3(a)}</td><td class="${d>=0?"pos":"neg"}">${d>=0?"+":""}${d.toFixed(4)}</td></tr>`;}).join("")}</table>`;
-    });
-    h+=`<div class="small muted" style="margin-top:8px">Repeat this for every pair, for many epochs: words used in similar contexts receive similar updates, so their rows — their vectors — end up close together.</div>`;
-  }
-  box.innerHTML=h;
-}
-
-/* ---------------- heatmaps ---------------- */
-function renderHeat(){
-  const V=S.vocab.length,N=S.cfg.dim;
-  const sc=Math.max(maxAbs(S.Win),1e-9), sc2=Math.max(maxAbs(S.Wout),1e-9);
-  const act=S.cur&&S.phase>=1?new Set(S.cur.ex.input):new Set();
-  const changed=S.phase===4&&S.lastUpdated?new Set(S.lastUpdated):new Set();
-  const head=`<tr><th></th>${Array.from({length:N},(_,k)=>`<th>d${k+1}</th>`).join("")}</tr>`;
-  let a=`<table class="hm">${head}`;
-  for(let i=0;i<V;i++){
-    a+=`<tr class="${act.has(i)?"act":""} ${S.vocab[i]===S.selected?"sel":""}"><td class="w" data-w="${esc(S.vocab[i])}">${esc(S.vocab[i])}</td>${S.Win[i].map(v=>`<td class="${changed.has(i)&&!S.running?"flash":""}" style="background:${wColor(v,sc)};color:${txtColor(v,sc)}">${v.toFixed(2)}</td>`).join("")}</tr>`;
-  }
-  $("#hmIn").innerHTML=a+"</table>";
-  const tg=S.cur&&S.phase>=2?S.cur.ex.target:-1;
-  let b=`<table class="hm">${head}`;
-  for(let j=0;j<V;j++){
-    b+=`<tr class="${j===tg?"act":""}"><td class="w" data-w="${esc(S.vocab[j])}">${esc(S.vocab[j])}</td>${S.Wout.map(r=>`<td style="background:${wColor(r[j],sc2)};color:${txtColor(r[j],sc2)}">${r[j].toFixed(2)}</td>`).join("")}</tr>`;
-  }
-  $("#hmOut").innerHTML=b+"</table>";
-}
-
-/* ---------------- embedding space ---------------- */
-let pcaPrev=null;
-function pca2(X){
-  const n=X.length,d=X[0].length;
-  const mean=new Array(d).fill(0);X.forEach(r=>r.forEach((v,k)=>mean[k]+=v/n));
-  const C=X.map(r=>r.map((v,k)=>v-mean[k]));
-  const cov=Array.from({length:d},()=>new Array(d).fill(0));
-  C.forEach(r=>{for(let a=0;a<d;a++)for(let b=0;b<d;b++)cov[a][b]+=r[a]*r[b]/n;});
-  const comps=[];let M=cov.map(r=>r.slice());
-  for(let c=0;c<2;c++){
-    let v=new Array(d).fill(0).map((_,k)=>1/Math.sqrt(d)+(k===c?0.3:0));
-    for(let it=0;it<120;it++){const w=M.map(r=>r.reduce((s,x,k)=>s+x*v[k],0));const nr=Math.hypot(...w)||1;v=w.map(x=>x/nr);}
-    const lam=v.reduce((s,x,a)=>s+x*M[a].reduce((t,y,b)=>t+y*v[b],0),0);
-    if(pcaPrev&&pcaPrev[c]&&pcaPrev[c].length===d){const dot=v.reduce((s,x,k)=>s+x*pcaPrev[c][k],0);if(dot<0)v=v.map(x=>-x);}
-    comps.push(v);
-    for(let a=0;a<d;a++)for(let b=0;b<d;b++)M[a][b]-=lam*v[a]*v[b];
-  }
-  pcaPrev=comps;
-  const tot=cov.reduce((s,r,i)=>s+r[i],0)||1;
-  return {P:X.map(r=>comps.map(v=>r.reduce((s,x,k)=>s+x*v[k],0))),origin:comps.map(v=>mean.reduce((s,x,k)=>s-x*v[k],0)),explained:null,tot};
-}
-function cos(a,b){let d=0,na=0,nb=0;for(let k=0;k<a.length;k++){d+=a[k]*b[k];na+=a[k]*a[k];nb+=b[k]*b[k];}return d/(Math.sqrt(na*nb)||1);}
-function renderSpace(){
-  const V=S.vocab.length,N=S.cfg.dim;if(!V){$("#space").innerHTML="";return;}
-  let P,origin;
-  if(N===2){P=S.Win.map(r=>r.slice());origin=[0,0];$("#spaceNote").textContent="N = 2: the two weights of each row are the x, y coordinates";}
-  else{const r=pca2(S.Win);P=r.P;origin=r.origin;$("#spaceNote").textContent=`N = ${N}: projected to 2-D with PCA`;}
-  const W=520,H=400,pad=40;
-  let xs=P.map(p=>p[0]).concat([origin[0]]),ys=P.map(p=>p[1]).concat([origin[1]]);
-  let x0=Math.min(...xs),x1=Math.max(...xs),y0=Math.min(...ys),y1=Math.max(...ys);
-  const cx=(x0+x1)/2,cy=(y0+y1)/2;
-  const k=Math.min((W-2*pad)/Math.max(x1-x0,1e-6),(H-2*pad)/Math.max(y1-y0,1e-6)); // equal scale keeps angles true
-  const X=v=>W/2+(v-cx)*k, Y=v=>H/2-(v-cy)*k;
-  const sel=S.vocab.indexOf(S.selected);
-  const sims=S.vocab.map((w,j)=>({w,j,s:cos(S.Win[sel],S.Win[j])})).filter(o=>o.j!==sel).sort((a,b)=>b.s-a.s);
-  const near=new Set(sims.slice(0,3).map(o=>o.j));
-  let g=`<svg viewBox="0 0 ${W} ${H}">`;
-  // axes through origin
-  g+=`<line x1="0" x2="${W}" y1="${Y(origin[1])}" y2="${Y(origin[1])}" stroke="#E1E6EE"/><line y1="0" y2="${H}" x1="${X(origin[0])}" x2="${X(origin[0])}" stroke="#E1E6EE"/>`;
-  g+=`<text x="${W-6}" y="${Y(origin[1])-5}" text-anchor="end" font-size="10" fill="#9AA4B2">${N===2?"d1":"PC1"}</text><text x="${X(origin[0])+5}" y="12" font-size="10" fill="#9AA4B2">${N===2?"d2":"PC2"}</text>`;
-  g+=`<defs><marker id="ah" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="5" markerHeight="5" orient="auto-start-reverse"><path d="M0,0L10,5L0,10z" fill="#B7C4DA"/></marker><marker id="ah2" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="5" markerHeight="5" orient="auto-start-reverse"><path d="M0,0L10,5L0,10z" fill="#2E9E5B"/></marker></defs>`;
-  if($("#optArrows").checked){
-    P.forEach((p,i)=>{const s=i===sel;g+=`<line x1="${X(origin[0])}" y1="${Y(origin[1])}" x2="${X(p[0])}" y2="${Y(p[1])}" stroke="${s?"#2E9E5B":"#C9D3E3"}" stroke-width="${s?2:1}" marker-end="url(#${s?"ah2":"ah"})"/>`;});
-  }
-  if($("#optLinks").checked&&sel>=0){
-    near.forEach(j=>{g+=`<line x1="${X(P[sel][0])}" y1="${Y(P[sel][1])}" x2="${X(P[j][0])}" y2="${Y(P[j][1])}" stroke="#2E9E5B" stroke-dasharray="4 3" stroke-width="1.3"/>`;});
-  }
-  const act=S.cur&&S.phase>=1?new Set(S.cur.ex.input):new Set();
-  P.forEach((p,i)=>{
-    const s=i===sel,n=near.has(i),a=act.has(i);
-    const fill=s?"#2E9E5B":(a?"#ED7D31":(n?"#7CC59A":"#4472C4"));
-    g+=`<g style="cursor:pointer" data-i="${i}"><circle cx="${X(p[0])}" cy="${Y(p[1])}" r="${s?7:5}" fill="${fill}" stroke="#fff" stroke-width="1.5"/>
-      <text x="${X(p[0])+8}" y="${Y(p[1])-6}" font-size="${s?13:11.5}" font-weight="${s||a?700:500}" fill="${s?"#2E9E5B":"#1F2A3A"}" paint-order="stroke" stroke="#FBFCFE" stroke-width="3">${esc(S.vocab[i])}</text></g>`;
-  });
-  g+="</svg>";
-  $("#space").innerHTML=g;
-  $("#space").querySelectorAll("g[data-i]").forEach(el=>el.addEventListener("click",()=>{S.selected=S.vocab[+el.dataset.i];renderAll();}));
-  // similarity list
-  let h=`<div style="margin-bottom:6px"><b style="color:var(--green)">${esc(S.selected)}</b> — cosine similarity</div>`;
-  sims.forEach(o=>{const pos=o.s>=0;h+=`<div class="row" data-w="${esc(o.w)}"><span>${esc(o.w)}</span><div class="bar"><i style="${pos?"left:50%":"right:50%"};width:${(Math.abs(o.s)*50).toFixed(1)}%;background:${pos?"#2E9E5B":"#C0392B"}"></i></div><span class="mono ${pos?"pos":"neg"}">${o.s.toFixed(2)}</span></div>`;});
-  h+=`<div class="small muted" style="margin-top:6px">cos = (a·b)/(|a||b|) on the full ${N}-D vectors. 1 = same direction, 0 = unrelated, −1 = opposite.</div>`;
-  $("#sim").innerHTML=h;
-}
-function renderLoss(){
-  const L=S.lossHist,W=520,H=130,p=28;
-  if(!L.length){$("#lossChart").innerHTML=`<div class="small muted">Average loss is recorded at the end of each epoch.</div>`;return;}
-  const mx=Math.max(...L),mn=Math.min(...L,0);
-  const X=i=>p+(L.length===1?0:i/(L.length-1))*(W-p-8), Y=v=>8+(1-(v-mn)/(mx-mn||1))*(H-p);
-  let path=L.map((v,i)=>(i?"L":"M")+X(i).toFixed(1)+","+Y(v).toFixed(1)).join("");
-  $("#lossChart").innerHTML=`<svg viewBox="0 0 ${W} ${H}"><line x1="${p}" x2="${W}" y1="${H-p+8}" y2="${H-p+8}" stroke="#E1E6EE"/><line x1="${p}" x2="${p}" y1="4" y2="${H-p+8}" stroke="#E1E6EE"/>
-  <text x="${p-4}" y="${Y(mx)+4}" text-anchor="end" font-size="10" fill="#6B7788">${mx.toFixed(2)}</text><text x="${p-4}" y="${Y(mn)+4}" text-anchor="end" font-size="10" fill="#6B7788">${mn.toFixed(2)}</text>
-  <text x="${W-4}" y="${H-4}" text-anchor="end" font-size="10" fill="#6B7788">epoch ${L.length}</text>
-  <path d="${path}" fill="none" stroke="#ED7D31" stroke-width="2"/></svg>`;
-}
-
-/* ---------------- render all ---------------- */
-function updateButtons(){
-  const r=S.running;
-  $("#bRun").textContent=r?"⏸ Pause":(S.done?"✓ Done":"▶ Run training");
-  $("#bRun").disabled=S.done&&!r;
-  ["#bNext","#bPair","#bEpoch","#bSettings","#bEdit"].forEach(id=>$(id).disabled=r||(S.done&&id!=="#bSettings"&&id!=="#bEdit"));
-  $("#bPrev").disabled=r||S.phase===-1;
-  $("#bNext").textContent=(S.phase===-1||S.phase===4)?"Next step ▸ (new pair)":`Next step ▸ (${PHASES[S.phase+1]})`;
-}
-function renderAll(){
-  $("#methodBadge").className="badge "+(S.cfg.method==="skipgram"?"sg":"cbow");
-  $("#methodBadge").textContent=(S.cfg.method==="skipgram"?"Skip-gram":"CBOW")+` · N=${S.cfg.dim} · ±${S.cfg.window}`;
-  $("#sEpoch").textContent=S.cur?S.cur.epoch+1:(S.done?S.cfg.epochs:0);
-  $("#sEpochs").textContent=S.cfg.epochs;
-  $("#sPair").textContent=S.cur?S.cur.exIndex+1:0;
-  $("#sPairs").textContent=S.examples.length;
-  $("#sLoss").textContent=S.lossHist.length?S.lossHist[S.lossHist.length-1].toFixed(3):"–";
-  document.querySelectorAll(".mswitch button").forEach(b=>b.classList.toggle("on",b.dataset.m===S.cfg.method));
-  renderLeft();renderPairs();renderPreview();renderNet();renderStep();renderHeat();renderSpace();renderLoss();updateButtons();
-}
-
-/* ---------------- events ---------------- */
-$("#bNext").onclick=()=>{nextPhase();renderAll();};
-$("#bPair").onclick=()=>{finishPair();renderAll();};
-$("#bPrev").onclick=()=>{prevPhase();renderAll();};
-$("#bEpoch").onclick=()=>{for(let g=0;g<1e5;g++){if(!finishPair())break;if(S.cur.exIndex===S.examples.length-1)break;}renderAll();};
-$("#bRun").onclick=()=>{S.running?stop():run();};
-$("#bReset").onclick=()=>{stop();initWeights();buildNet();renderAll();};
-document.addEventListener("click",e=>{
-  const w=e.target.closest("[data-w]");
-  if(w&&!e.target.closest(".modal")){S.selected=w.dataset.w;renderAll();}
-  const pp=e.target.closest("[data-p]");if(pp){pvIndex=+pp.dataset.p;const ex=S.examples[pvIndex];if(ex&&page===3&&!e.target.closest(".swPairs")){swStop();SW.s=ex.s;SW.p=ex.pos;renderSW();}renderPreview();}
-  const m=e.target.closest("[data-m]");
-  if(m&&m.dataset.m!==S.cfg.method){stop();S.cfg.method=m.dataset.m;pcaPrev=null;pvIndex=0;fullReset();if(page===4)loadSettingsForm();}
-  const g=e.target.closest("[data-go]");if(g){e.preventDefault();goPage(+g.dataset.go);}
-  if(e.target.matches("[data-close]")||e.target.classList.contains("modal"))document.querySelectorAll(".modal").forEach(m=>m.classList.remove("open"));
-});
-function syncLabels(){$("#vDim").textContent=$("#fDim").value;$("#vWin").textContent="±"+$("#fWin").value;$("#vLr").textContent=(+$("#fLr").value).toFixed(3);$("#vEp").textContent=$("#fEp").value;}
-["#fDim","#fWin","#fLr","#fEp"].forEach(id=>$(id).addEventListener("input",syncLabels));
-function loadSettingsForm(){
-  const c=S.cfg;
-  document.querySelectorAll("input[name=method]").forEach(r=>r.checked=r.value===c.method);
-  $("#fDim").value=c.dim;$("#fWin").value=c.window;$("#fLr").value=c.lr;$("#fEp").value=c.epochs;$("#fSeed").value=c.seed;$("#fStop").checked=c.stop;
-  syncLabels();
-}
-$("#bSettings").onclick=()=>{stop();goPage(4);};
-$("#bApply").onclick=()=>{
-  S.cfg.method=document.querySelector("input[name=method]:checked").value;
-  S.cfg.dim=+$("#fDim").value;S.cfg.window=+$("#fWin").value;S.cfg.lr=+$("#fLr").value;S.cfg.epochs=+$("#fEp").value;
-  S.cfg.seed=Math.max(1,parseInt($("#fSeed").value)||1);S.cfg.stop=$("#fStop").checked;
-  pcaPrev=null;pvIndex=0;fullReset();goPage(5);
-};
-$("#bEdit").onclick=()=>{stop();$("#fCorpus").value=S.sentences.join("\n");$("#mCorpus").classList.add("open");};
-$("#bDefault").onclick=()=>{$("#fCorpus").value=DEFAULT_SENTENCES.join("\n");};
-$("#bCorpusApply").onclick=()=>{
-  const lines=$("#fCorpus").value.split("\n").map(s=>s.trim()).filter(Boolean);
-  if(!lines.length)return;
-  S.sentences=lines;pcaPrev=null;pvIndex=0;$("#mCorpus").classList.remove("open");fullReset();
-};
-["#optArrows","#optLinks"].forEach(id=>$(id).addEventListener("change",renderSpace));
-document.addEventListener("keydown",e=>{
-  if(document.querySelector(".modal.open")||e.target.matches("input,textarea"))return;
-  if(page<5)return;
-  if(e.key==="ArrowRight"){$("#bNext").click();e.preventDefault();}
-  if(e.key==="ArrowLeft"&&!$("#bPrev").disabled){$("#bPrev").click();e.preventDefault();}
-  if(e.key===" "){$("#bRun").click();e.preventDefault();}
-});
-
-/* ---------------- pages ---------------- */
-const PAGES=["Sentences","Vocabulary","Training pairs","Settings","Train step by step","Weights = vectors","Vector space"];
-let page=1;const seen=new Set([1]);
-function goPage(n,noHash){
-  page=Math.min(PAGES.length,Math.max(1,n));seen.add(page);
-  document.querySelectorAll(".page").forEach(p=>p.classList.toggle("on",+p.dataset.page===page));
-  $("#stepper").innerHTML=PAGES.map((t,i)=>`<a href="#${i+1}" data-go="${i+1}" class="${i+1===page?"on":(seen.has(i+1)?"seen":"")}"><span class="n">${i+1}</span><span class="t">${t}</span></a>`).join("");
-  $("#toolbar").classList.toggle("hide",page<5);
-  $("#pagenav").innerHTML=(page>1?`<button data-go="${page-1}">← ${page-1}. ${PAGES[page-2]}</button>`:"<span></span>")+
-    (page<PAGES.length?`<button class="primary" data-go="${page+1}">${page+1}. ${PAGES[page]} →</button>`:"");
-  if(page===4)loadSettingsForm();
-  if(page===3)renderSW();else swStop();
-  if(!noHash&&location.hash!=="#"+page){try{history.replaceState(null,"","#"+page);}catch(e){}}
-  window.scrollTo({top:0});
-  if(page===5||page===6||page===7)renderAll();
-}
-document.querySelectorAll("#swWin button").forEach(b=>b.onclick=()=>{const w=+b.dataset.win;if(w===S.cfg.window)return;swStop();const keep={s:SW.s,p:SW.p};S.cfg.window=w;pcaPrev=null;pvIndex=0;fullReset();SW.s=keep.s;SW.p=keep.p;renderSW();});
-$("#swStopT").onchange=e=>{swStop();const ks=SW.s;S.cfg.stop=e.target.checked;pcaPrev=null;pvIndex=0;fullReset();SW.s=ks;SW.p=0;renderSW();};
-$("#swFwd").onclick=()=>{swStop();swStep(1);};
-$("#swBack").onclick=()=>{swStop();swStep(-1);};
-$("#swFirst").onclick=()=>{swStop();SW.p=0;renderSW();};
-$("#swSent").onchange=e=>{swStop();SW.s=+e.target.value;SW.p=0;renderSW();};
-$("#swPlay").onclick=()=>{if(SW.timer){swStop();return;}$("#swPlay").textContent="⏸ Pause";SW.timer=setInterval(()=>swStep(1),1300);};
-window.addEventListener("resize",()=>{if(page===3)renderSW();});
-window.addEventListener("hashchange",()=>{const n=parseInt(location.hash.slice(1));if(n&&n!==page)goPage(n,true);});
-
-fullReset();
-goPage(parseInt(location.hash.slice(1))||1,true);
-})();
-</script>
-</body>
-</html>
+<section class="hero"><h2>How do computers read text?</h2>
+<p>Machine-learning models only understand numbers. Before a model can classify a review, search documents or chat with us, every piece of text must be turned into <b>vectors</b>. These interactive pages show four classic ways to do it — from the simplest to the one that learns meaning — step by step, with your own sentences in English or Arabic.</p>
+<div class="pipeline"><span>Text</span><i>→</i><span>Tokens</span><i>→</i><span>Vocabulary</span><i>→</i><span>Vectors</span><i>→</i><span>Machine-learning model</span></div></section>
+<div class="methods"><a class="m" href="onehot.html" style="--c:#4472C4"><span class="k">Method 1</span><h3>One-Hot Encoding</h3><p>Every word gets its own position. A word becomes a vector of zeros with a single 1.</p><div class="ex">cat → [0, 1, 0, 0, 0, 0]
+dog → [0, 0, 0, 0, 1, 0]</div><ul><li>vocabulary & word IDs</li><li>one word = one vector</li><li>why it has no meaning</li></ul><span class="go">Open →</span></a><a class="m" href="bow.html" style="--c:#ED7D31"><span class="k">Method 2</span><h3>Bag of Words</h3><p>A whole document becomes one vector of word counts. Word order is thrown away.</p><div class="ex">"the cat sat on the mat"
+→ the:2 cat:1 sat:1 on:1 mat:1</div><ul><li>counting words</li><li>document-term matrix</li><li>document similarity</li></ul><span class="go">Open →</span></a><a class="m" href="tfidf.html" style="--c:#2E9E5B"><span class="k">Method 3</span><h3>TF-IDF</h3><p>Counts are re-weighted: words frequent in one document but rare elsewhere score highest.</p><div class="ex">the → 0.00  (in every doc)
+mat → 0.30  (only in D1)</div><ul><li>term frequency</li><li>inverse document frequency</li><li>finding keywords</li></ul><span class="go">Open →</span></a><a class="m" href="word2vec.html" style="--c:#7B5EA7"><span class="k">Method 4</span><h3>Word2Vec</h3><p>A neural network learns short, dense vectors so that words used in similar contexts end up close together.</p><div class="ex">cat → [ 0.82, -1.10, 0.35 ]
+dog → [ 0.79, -1.02, 0.41 ]</div><ul><li>sliding window</li><li>Skip-gram & CBOW</li><li>training step by step</li></ul><span class="go">Open →</span></a></div>
+<div class="arrow"><span>simple · counts only</span><span>→ more information →</span><span>learns meaning</span></div>
+<section class="card" style="margin-top:12px"><h2>Compare the four methods</h2><div class="tblwrap"><table class="cmp"><thead><tr><th></th><th>One-Hot</th><th>Bag of Words</th><th>TF-IDF</th><th>Word2Vec</th></tr></thead><tbody><tr><th>Represents</th><td class="">a word</td><td class="">a document</td><td class="">a document</td><td class="">a word</td></tr><tr><th>Vector size</th><td class="">V (vocabulary size)</td><td class="">V</td><td class="">V</td><td class="">small, chosen (e.g. 100–300)</td></tr><tr><th>Values</th><td class="">0 / 1</td><td class="">counts</td><td class="">weights</td><td class="y">learned real numbers</td></tr><tr><th>Mostly zeros (sparse)?</th><td class="y">yes</td><td class="y">yes</td><td class="y">yes</td><td class="">no (dense)</td></tr><tr><th>Keeps word order?</th><td class="">per word only</td><td class="n">no</td><td class="n">no</td><td class="">partly (via context window)</td></tr><tr><th>Similar words get similar vectors?</th><td class="n">no</td><td class="n">no</td><td class="n">no</td><td class="y">yes</td></tr><tr><th>Needs training?</th><td class="n">no</td><td class="n">no</td><td class="n">no</td><td class="y">yes (neural network)</td></tr></tbody></table></div></section>
+<section class="card"><h2>Suggested order for class</h2><ol style="line-height:1.8;margin:0;padding-left:20px">
+<li><a href="onehot.html">One-Hot</a> — how words get IDs and why one-hot vectors carry no meaning.</li>
+<li><a href="bow.html">Bag of Words</a> — add one-hot vectors to describe a whole document; see what is lost.</li>
+<li><a href="tfidf.html">TF-IDF</a> — fix the "common words dominate" problem with smarter weights.</li>
+<li><a href="word2vec.html">Word2Vec</a> — train a small neural network and watch similar words move together.</li></ol>
+<p class="small muted" style="margin:12px 0 0">Every page has an <b>Edit</b> button and example sets (including Arabic). Add <code>#3</code> to a page address to open its step 3 directly.</p></section>
+<p class="small muted" style="text-align:center;margin-top:24px">AI Agent Development · The Hope International · Module 2 — Language Foundation</p>
+</main></body></html>

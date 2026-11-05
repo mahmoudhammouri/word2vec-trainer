@@ -1,0 +1,326 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>One-Hot Encoding</title><style>:root{--blue:#4472C4;--blue-t:#DAE3F3;--orange:#ED7D31;--orange-t:#FBE5D6;--dark:#44546A;--green:#2E9E5B;--green-t:#DDF2E5;--purple:#7B5EA7;--purple-t:#ECE6F5;--bg:#F4F6FA;--card:#fff;--line:#E1E6EE;--text:#1F2A3A;--muted:#6B7788}
+*{box-sizing:border-box}
+body{margin:0;font-family:Aptos,"Segoe UI",system-ui,-apple-system,Roboto,sans-serif;background:var(--bg);color:var(--text);font-size:14px}
+a{color:var(--blue)}
+header{background:var(--dark);color:#fff;padding:12px 22px;display:flex;align-items:center;gap:18px;flex-wrap:wrap}
+header .brand{color:#fff;text-decoration:none;font-weight:700;font-size:16px;opacity:.85}
+header .brand:hover{opacity:1}
+header h1{font-size:19px;margin:0;font-weight:600}
+header nav{margin-left:auto;display:flex;gap:4px;flex-wrap:wrap}
+header nav a{color:#dfe5ee;text-decoration:none;padding:6px 10px;border-radius:6px;font-size:13px}
+header nav a:hover{background:rgba(255,255,255,.12)}
+header nav a.on{background:#fff;color:var(--dark);font-weight:700}
+.stepper{background:#fff;border-bottom:1px solid var(--line);display:flex;align-items:center;gap:12px;padding:0 22px;flex-wrap:wrap}
+.stepper .links{display:flex;overflow-x:auto;min-width:0;flex:1}
+.stepper a{display:flex;align-items:center;gap:8px;padding:12px 14px;color:var(--muted);text-decoration:none;border-bottom:3px solid transparent;white-space:nowrap;font-weight:500}
+.stepper a .n{width:24px;height:24px;border-radius:50%;background:#EEF1F6;display:inline-flex;align-items:center;justify-content:center;font-size:12px;font-weight:700}
+.stepper a.on{color:var(--blue);border-color:var(--blue)}
+.stepper a.on .n{background:var(--blue);color:#fff}
+.stepper a.seen .n{background:var(--blue-t);color:var(--blue)}
+.stepper a:hover{color:var(--blue)}
+main{padding:18px 22px 40px;max-width:1500px;margin:0 auto}
+.page{display:none}.page.on{display:block;animation:fadein .25s}
+@keyframes fadein{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
+.intro{display:flex;gap:16px;align-items:flex-start;margin-bottom:16px}
+.intro .num{flex:none;width:46px;height:46px;border-radius:12px;background:var(--blue);color:#fff;font-size:22px;font-weight:700;display:flex;align-items:center;justify-content:center}
+.intro h2.pt{margin:0 0 4px;font-size:22px;color:var(--dark)}
+.intro p{margin:0;line-height:1.55;max-width:950px;color:#3b4757}
+.card{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:14px 16px;min-width:0}
+.card+.card{margin-top:16px}
+.card h2{font-size:12px;letter-spacing:.08em;text-transform:uppercase;color:var(--blue);margin:0 0 10px;display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.card h2 .r{margin-left:auto;text-transform:none;letter-spacing:0;font-weight:400}
+.two{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:16px;align-items:start}
+.two>.card+.card{margin-top:0}
+.muted{color:var(--muted)}.small{font-size:12px}
+button{font:inherit;border:1px solid var(--line);background:#fff;color:var(--text);padding:7px 12px;border-radius:7px;cursor:pointer;white-space:nowrap}
+button:hover{border-color:var(--blue);color:var(--blue)}
+button.primary{background:var(--blue);color:#fff;border-color:var(--blue)}
+button.primary:hover{background:#365fa8;color:#fff}
+button.accent{background:var(--orange);color:#fff;border-color:var(--orange)}
+button.accent:hover{background:#d26a22;color:#fff}
+button:disabled{opacity:.4;cursor:not-allowed}
+select{font:inherit;padding:5px 8px;border:1px solid var(--line);border-radius:6px;max-width:100%;background:#fff}
+.explain{background:#F7F9FC;border-left:3px solid var(--blue);padding:9px 12px;border-radius:0 8px 8px 0;line-height:1.55;margin:10px 0}
+.explain.o{border-color:var(--orange)}.explain.g{border-color:var(--green)}
+.formula{font-family:Consolas,monospace;background:#fff;border:1px dashed var(--line);border-radius:8px;padding:10px 14px;margin:8px 0;font-size:14px;line-height:1.7}
+.mono{font-family:Consolas,monospace}
+.chips{display:flex;flex-wrap:wrap;gap:5px}
+.chip{font-size:13px;padding:3px 9px;border-radius:12px;background:#EEF1F6;cursor:pointer;border:1px solid transparent}
+.chip:hover{border-color:var(--blue)}
+.chip.sel{background:var(--blue);color:#fff}
+.chip.new{background:var(--orange);color:#fff;animation:pop .35s}
+@keyframes pop{from{transform:scale(.6);opacity:0}to{transform:none;opacity:1}}
+ol.docs{margin:0;padding:0;list-style:none}
+ol.docs li{display:flex;gap:10px;padding:6px 4px;border-bottom:1px solid #f0f2f6;font-size:15px;align-items:baseline}
+ol.docs li b.d{flex:none;font-size:12px;color:var(--blue);background:var(--blue-t);border-radius:5px;padding:1px 6px}
+.tok-stop{color:#aab3c0;text-decoration:line-through}
+.toks{display:flex;flex-wrap:wrap;gap:8px;margin:8px 0}
+.toks span{padding:8px 13px;border-radius:8px;background:#EEF1F6;font-size:17px;font-weight:600;transition:all .3s}
+.toks span.done{background:var(--blue-t);color:var(--blue)}
+.toks span.cur{background:var(--orange);color:#fff;transform:translateY(-2px);box-shadow:0 4px 10px rgba(237,125,49,.35)}
+.toks span.fut{opacity:.45}
+.ctrl{display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin:8px 0}
+.msg{font-size:14px;margin:6px 0;min-height:22px}
+.tblwrap{overflow:auto;max-width:100%}
+table.mx{border-collapse:separate;border-spacing:2px;font-size:12px}
+table.mx th{font-weight:500;color:var(--muted);padding:3px 5px;background:#fff;white-space:nowrap}
+table.mx thead th{position:sticky;top:0;z-index:1}
+table.mx th.v{writing-mode:vertical-rl;transform:rotate(180deg);text-align:left;padding:5px 2px;height:auto;cursor:pointer}
+table.mx th.rl{text-align:right;font-weight:600;color:var(--text);cursor:pointer}
+table.mx td{min-width:30px;height:26px;text-align:center;border-radius:4px;font-family:Consolas,monospace;background:#F4F6FA;transition:background .25s}
+table.mx td.z{color:#C3CAD4}
+table.mx tr.hl th.rl{color:var(--orange)}
+table.mx td.hl{outline:2px solid var(--orange)}
+table.mx th.hl{color:var(--orange);font-weight:700}
+table.mx tr.dim td,table.mx tr.dim th{opacity:.25}
+table.mx td.flash{animation:fl .6s}
+@keyframes fl{0%{box-shadow:0 0 0 4px var(--green)}100%{box-shadow:0 0 0 0 transparent}}
+table.calc{border-collapse:collapse;width:100%;font-size:13px}
+table.calc th,table.calc td{padding:5px 8px;border-bottom:1px solid #f0f2f6;text-align:right}
+table.calc th{color:var(--muted);font-weight:500;font-size:12px}
+table.calc td:first-child,table.calc th:first-child{text-align:left}
+table.calc td.n{font-family:Consolas,monospace}
+table.calc tr.top td{background:var(--green-t)}
+.bar{height:10px;border-radius:3px;background:#EEF1F6;position:relative;overflow:hidden;min-width:60px}
+.bar i{position:absolute;left:0;top:0;bottom:0;border-radius:3px;background:var(--blue)}
+.vecrow{display:flex;flex-wrap:wrap;gap:3px;margin:6px 0}
+.vecrow div{min-width:46px;text-align:center;border:1px solid var(--line);border-radius:6px;padding:4px 3px;font-family:Consolas,monospace;font-size:13px;transition:all .25s}
+.vecrow div small{display:block;font-family:Aptos,"Segoe UI",sans-serif;font-size:10px;color:var(--muted);max-width:64px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.vecrow div.on{background:var(--blue);color:#fff;border-color:var(--blue)}
+.vecrow div.on small{color:#dfe8f8}
+.vecrow div.o{background:var(--orange);color:#fff;border-color:var(--orange)}
+.vecrow div.o small{color:#fff3ea}
+.stat{display:flex;gap:10px;flex-wrap:wrap;margin:8px 0}
+.stat div{flex:1;min-width:130px;background:#F7F9FC;border-radius:8px;padding:8px 12px}
+.stat b{display:block;font-size:20px}
+.stat span{font-size:12px;color:var(--muted)}
+.opts{display:flex;gap:14px;align-items:center;flex-wrap:wrap;font-size:13px;margin:6px 0 10px}
+.seg{display:inline-flex;background:#EEF1F6;border-radius:9px;padding:3px;gap:2px}
+.seg button{border:none;background:transparent;padding:5px 12px;border-radius:7px;font-weight:600;color:var(--muted)}
+.seg button.on{background:var(--blue);color:#fff}
+.pagenav{display:flex;justify-content:space-between;gap:12px;margin-top:22px;padding-top:16px;border-top:1px solid var(--line)}
+.pagenav button,.pagenav a.btn{padding:10px 16px}
+a.btn{display:inline-block;text-decoration:none;border-radius:7px;font-weight:500}
+a.btn.primary{background:var(--green);color:#fff}
+.modal{position:fixed;inset:0;background:rgba(20,30,45,.45);display:none;align-items:center;justify-content:center;z-index:50;padding:16px}
+.modal.open{display:flex}
+.modal .box{background:#fff;border-radius:14px;width:min(600px,100%);max-height:92vh;overflow:auto;padding:20px 22px;box-shadow:0 20px 50px rgba(0,0,0,.25)}
+.modal h3{margin:0 0 4px;font-size:18px}
+textarea{width:100%;min-height:260px;font:13px/1.5 Consolas,"Segoe UI",monospace;border:1px solid var(--line);border-radius:8px;padding:10px;margin-top:10px}
+.mfoot{display:flex;justify-content:flex-end;gap:8px;margin-top:14px;align-items:center;flex-wrap:wrap}
+@media (max-width:900px){.two{grid-template-columns:minmax(0,1fr)}}
+@media (max-width:700px){main{padding:12px}header nav{margin-left:0}.stepper{padding:0 8px}.stepper a{padding:10px 8px}.stepper a .t{display:none}.card h2 .r{margin-left:0;width:100%}.card h2 .r select{width:100%}.seg{flex-wrap:wrap}.seg button,.pagenav button,.pagenav a.btn{white-space:normal;text-align:center}.intro .num{width:36px;height:36px;font-size:18px}}
+</style></head><body>
+<header><a class="brand" href="index.html">Text → Numbers</a><h1>One-Hot Encoding</h1><span class="small" style="opacity:.75">words → vectors of 0s and a single 1</span><nav><a href="index.html" class="">Home</a><a href="onehot.html" class="on">1 · One-Hot</a><a href="bow.html" class="">2 · Bag of Words</a><a href="tfidf.html" class="">3 · TF-IDF</a><a href="word2vec.html" class="">4 · Word2Vec</a></nav></header>
+<nav class="stepper"><div id="stepper" class="links"></div></nav>
+<main><section class="page" data-page="1">
+ <div class="intro"><span class="num">1</span><div><h2 class="pt">The sentences</h2><p>One-hot encoding turns each <b>word</b> into a vector of numbers. First we need some text. Edit the sentences or load an example set.</p></div></div>
+ <div class="two"><section class="card"><h2>Sentences <span class="r"><button id="bEdit" class="small" style="padding:3px 9px">Edit sentences</button></span></h2><ol class="docs" id="docList"></ol>
+ <div class="opts" style="margin-top:10px"><label><input type="checkbox" id="stopT"> remove stop words (the, a, is, في, على …)</label></div></section>
+ <section class="card"><h2>Pre-processing</h2><ol style="line-height:1.7;padding-left:20px;margin:0 0 10px"><li><b>Lower-case</b> everything and drop punctuation.</li><li><b>Split</b> into words (tokens).</li><li>Optionally <b>remove stop words</b> — shown <span class="tok-stop">crossed out</span>.</li></ol>
+ <div class="stat" id="docStats"></div></section></div></section>
+<section class="page" data-page="2">
+ <div class="intro"><span class="num">2</span><div><h2 class="pt">Build the vocabulary</h2><p>We read every word of every sentence, one by one. The first time we meet a word it gets the next free <b>ID</b> (0, 1, 2 …). If we already know the word, we skip it. The result is the vocabulary — a list of all V distinct words.</p></div></div>
+ <section class="card"><h2>Reading the sentences</h2>
+  <div id="vbDocs"></div>
+  <div class="ctrl"><button id="vbFirst">⏮</button><button id="vbBack">◀ Previous word</button><button id="vbPlay" class="accent">▶ Play</button><button id="vbNext" class="primary">Next word ▶</button><button id="vbAll">Read everything ⏭</button></div>
+  <div class="msg" id="vbMsg"></div>
+ </section>
+ <section class="card"><h2>Vocabulary so far <span class="r small muted" id="vbCount"></span></h2><div class="chips" id="vbVocab"></div></section>
+</section>
+
+<section class="page" data-page="3">
+ <div class="intro"><span class="num">3</span><div><h2 class="pt">One-hot vectors</h2><p>Each word becomes a vector with <b>V</b> numbers (one per vocabulary word). All numbers are <b>0</b> except a single <b>1</b> at the word's ID — it is "hot" in exactly one position. Click a word.</p></div></div>
+ <section class="card"><h2>Vocabulary</h2><div class="chips" id="ohChips"></div></section>
+ <section class="card"><h2>One-hot vector of <span id="ohWord" style="color:var(--green)"></span></h2><div id="ohVec"></div><div class="formula" id="ohForm"></div></section>
+ <section class="card"><h2>All one-hot vectors together <span class="r small muted">V × V — an identity matrix</span></h2><div class="tblwrap" id="ohMat"></div>
+ <div class="explain">Stacked together, the one-hot vectors form an <b>identity matrix</b>: 1s on the diagonal, 0 everywhere else. Each row is one word.</div></section>
+</section>
+
+<section class="page" data-page="4">
+ <div class="intro"><span class="num">4</span><div><h2 class="pt">Encode a sentence</h2><p>A sentence becomes a <b>sequence of one-hot vectors</b> — one row per word, in order. This table is what a neural network (for example Word2Vec) receives as input.</p></div></div>
+ <section class="card"><h2>Sentence <span class="r" id="esSelWrap"></span></h2>
+  <div class="toks" id="esToks" dir="auto"></div>
+  <div class="ctrl"><button id="esBack">◀ Previous word</button><button id="esPlay" class="accent">▶ Play</button><button id="esNext" class="primary">Next word ▶</button><button id="esAll">Show all</button></div>
+  <div class="msg" id="esMsg"></div>
+ </section>
+ <section class="card"><h2>Sentence matrix <span class="r small muted" id="esShape"></span></h2><div class="tblwrap" id="esMat"></div></section>
+</section>
+
+<section class="page" data-page="5">
+ <div class="intro"><span class="num">5</span><div><h2 class="pt">Limitations of one-hot encoding</h2><p>One-hot vectors are simple and lossless, but they say <b>nothing about meaning</b>, and they get <b>huge</b> as the vocabulary grows.</p></div></div>
+ <div class="two">
+ <section class="card"><h2>1 · Every pair of words is equally different</h2>
+  <div class="opts">Word A <select id="cmpA"></select> Word B <select id="cmpB"></select></div>
+  <div id="cmpOut"></div>
+ </section>
+ <section class="card"><h2>2 · Vectors are huge and mostly zeros</h2><div id="sizeOut"></div></section>
+ </div>
+ <section class="card"><h2>What comes next</h2><div class="explain o">One-hot gives a vector for each <b>word</b>. To represent a whole <b>sentence or document</b> with a single vector, we can add the one-hot vectors of its words together — that is <b>Bag of Words</b>. Later, <b>Word2Vec</b> replaces one-hot vectors with short, dense vectors that do capture meaning.</div></section>
+</section>
+<div class="pagenav" id="pagenav"></div></main>
+<div class="modal" id="mCorpus"><div class="box"><h3>Edit sentences</h3><div class="muted small">One sentence per line, in English or Arabic (عربي). Keep it small (≈ 4–10 lines) so the tables stay readable.</div>
+<textarea id="fCorpus" dir="auto"></textarea><div class="mfoot"><label class="small" style="margin-right:auto">Load example: <select id="exSel"></select></label><button data-close>Cancel</button><button class="primary" id="bCorpusApply">Apply</button></div></div></div>
+<script>
+(function(){"use strict";
+const DEFAULT_DOCS=["the cat sat on the mat", "the dog sat on the log", "the cat chased the dog", "a king rules the kingdom", "a queen rules the kingdom"];
+const PAGES=["Sentences", "Build the vocabulary", "One-hot vectors", "Encode a sentence", "Limitations"];
+const DOC_LABEL="S",DOC_NAME="sentence";
+const NEXT_METHOD=["bow.html", "Bag of Words"];
+/* ===== shared: corpus, tokenizer, pages ===== */
+const STOP=new Set("the a an and is are am in of i to on at it this that be was were for with as by from or but not no so do does did has have had he she they we you his her its their our your my me him them who what which when where there here than then too very can will would just around again also".split(" ").concat("في على من إلى الى عن هو هي مع هذا هذه كان ثم أو او قد لا ما".split(" ")));
+const EXAMPLES={
+ "Pets & football (default)":null,
+ "Movie reviews":["the movie was great and the acting was great","the movie was boring and too long","great acting and a great story","the story was boring and the ending was bad","a long movie with great music","the music was too loud but the story was great"],
+ "News headlines":["the team won the football match","the government announced a new law","the new phone has a great camera","fans celebrated the football win in the city","the new law will change taxes","the company announced a new phone with a better camera"],
+ "Man United & Premier League":["manchester united won the match at old trafford","manchester city won the match at the etihad","the striker scored a goal for manchester united","the goalkeeper saved a penalty in the derby","liverpool and arsenal play in the premier league","the fans sang loudly when united scored a goal"],
+ "عربي: قطط وكرة قدم":["القط جلس على السجادة","الكلب جلس على السجادة","القط طارد الكلب في الحديقة","اللاعب سجل هدفا في المباراة","الجمهور شاهد المباراة في الملعب","اللاعب سجل هدفا ثم فرح الجمهور"],
+ "عربي: أخبار":["الفريق فاز في مباراة كرة القدم","الحكومة أعلنت قانونا جديدا","الهاتف الجديد يملك كاميرا رائعة","الجمهور احتفل بفوز الفريق","القانون الجديد سيغير الضرائب","الشركة أعلنت هاتفا جديدا بكاميرا أفضل"]
+};
+const $=s=>document.querySelector(s), $$=s=>[...document.querySelectorAll(s)];
+const esc=s=>String(s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+const iso=w=>"⁨"+w+"⁩";
+const isAr=t=>/[؀-ۿ]/.test(t);
+function tokenize(s){return s.toLowerCase().replace(/[ً-ْـ]/g,"").replace(/[^\p{L}\p{N}'\s-]/gu," ").split(/\s+/).filter(Boolean);}
+const A={docs:DEFAULT_DOCS.slice(),stop:false,raw:[],tokens:[],vocab:[],id:{}};
+function prepare(){
+  A.raw=A.docs.map(tokenize);
+  A.tokens=A.raw.map(t=>A.stop?t.filter(w=>!STOP.has(w)):t);
+  A.vocab=[];A.id={};
+  A.tokens.forEach(t=>t.forEach(w=>{if(!(w in A.id)){A.id[w]=A.vocab.length;A.vocab.push(w);}}));
+}
+const dl=i=>`${DOC_LABEL}${i+1}`;
+function blue(v,max){const a=max>0?Math.min(1,v/max):0;return v===0?"#F4F6FA":`rgba(68,114,196,${(0.12+0.8*a).toFixed(3)})`;}
+function fg(v,max){return max>0&&v/max>0.55?"#fff":"#1F2A3A";}
+function fmt(v,d=2){return Number.isInteger(v)?String(v):v.toFixed(d);}
+function cosine(a,b){let d=0,na=0,nb=0;for(let i=0;i<a.length;i++){d+=a[i]*b[i];na+=a[i]*a[i];nb+=b[i]*b[i];}return na&&nb?d/Math.sqrt(na*nb):0;}
+/* matrix table: rows x cols */
+function matrix(rowLabels,colLabels,M,o={}){
+  const max=o.max??Math.max(1e-9,...M.flat());
+  let h=`<table class="mx"><thead><tr><th></th>${colLabels.map((c,j)=>`<th class="v ${o.hlCol===j?"hl":""}" dir="auto" data-col="${j}" title="${esc(c)}">${esc(c)}</th>`).join("")}</tr></thead><tbody>`;
+  M.forEach((r,i)=>{
+    const cls=(o.hlRow===i?"hl ":"")+(o.dimFrom!=null&&i>=o.dimFrom?"dim":"");
+    h+=`<tr class="${cls}"><th class="rl" dir="auto" data-row="${i}" title="${esc(o.rowTitles?o.rowTitles[i]:rowLabels[i])}">${esc(rowLabels[i])}</th>${r.map((v,j)=>{
+      const c=[];if(v===0)c.push("z");if(o.hlCell&&o.hlCell[0]===i&&o.hlCell[1]===j)c.push("hl","flash");
+      return `<td class="${c.join(" ")}" style="background:${blue(v,max)};color:${v===0?"":fg(v,max)}" title="${esc(rowLabels[i])} · ${esc(colLabels[j])} = ${fmt(v,3)}">${v===0&&o.blankZero?"":fmt(v,o.dec??2)}</td>`;}).join("")}</tr>`;
+  });
+  return h+"</tbody></table>";
+}
+function vecRow(vals,labels,o={}){
+  return `<div class="vecrow" dir="ltr">${vals.map((v,i)=>`<div class="${o.on&&o.on(i,v)?"on":""} ${o.orange===i?"o":""}" data-w="${esc(labels[i])}" title="${esc(labels[i])}">${fmt(v,o.dec??2)}<small>${o.idx?i+"·":""}${esc(labels[i])}</small></div>`).join("")}</div>`;
+}
+function docSelect(id,val){return `<select id="${id}">${A.docs.map((d,i)=>`<option value="${i}" ${i===val?"selected":""}>${dl(i)}: ${esc(d.length>60?d.slice(0,58)+"…":d)}</option>`).join("")}</select>`;}
+function renderDocs(){
+  $("#docList").innerHTML=A.raw.map((t,i)=>`<li><b class="d">${dl(i)}</b><span dir="auto">${t.map(w=>A.stop&&STOP.has(w)?`<span class="tok-stop">${esc(w)}</span>`:esc(w)).join(" ")}</span></li>`).join("");
+  $("#stopT").checked=A.stop;
+  const n=A.tokens.reduce((a,t)=>a+t.length,0);
+  $("#docStats").innerHTML=`<div><b>${A.docs.length}</b><span>${DOC_NAME}s</span></div><div><b>${n}</b><span>tokens (words) after pre-processing</span></div><div><b>${A.vocab.length}</b><span>distinct words = vocabulary size V</span></div>`;
+}
+/* pages */
+let page=1;const seen=new Set([1]);
+function goPage(n,noHash){
+  page=Math.min(PAGES.length,Math.max(1,n));seen.add(page);
+  $$(".page").forEach(p=>p.classList.toggle("on",+p.dataset.page===page));
+  $("#stepper").innerHTML=PAGES.map((t,i)=>`<a href="#${i+1}" data-go="${i+1}" class="${i+1===page?"on":(seen.has(i+1)?"seen":"")}"><span class="n">${i+1}</span><span class="t">${t}</span></a>`).join("");
+  $("#pagenav").innerHTML=(page>1?`<button data-go="${page-1}">← ${page-1}. ${PAGES[page-2]}</button>`:`<a class="btn" href="index.html" style="border:1px solid var(--line);background:#fff;color:var(--text)">← All methods</a>`)+
+    (page<PAGES.length?`<button class="primary" data-go="${page+1}">${page+1}. ${PAGES[page]} →</button>`:`<a class="btn primary" href="${NEXT_METHOD[0]}">Next method: ${NEXT_METHOD[1]} →</a>`);
+  if(!noHash){try{history.replaceState(null,"","#"+page);}catch(e){}}
+  window.scrollTo({top:0});
+  if(typeof onPage==="function")onPage(page);
+  renderAll();
+}
+window.addEventListener("hashchange",()=>{const n=parseInt(location.hash.slice(1));if(n&&n!==page)goPage(n,true);});
+function renderAll(){renderDocs();renderPage();}
+function resetAll(){prepare();if(typeof onReset==="function")onReset();renderAll();}
+document.addEventListener("click",e=>{
+  const g=e.target.closest("[data-go]");if(g){e.preventDefault();goPage(+g.dataset.go);}
+  if(e.target.matches("[data-close]")||e.target.classList.contains("modal"))$$(".modal").forEach(m=>m.classList.remove("open"));
+});
+function initCommon(){
+  $("#exSel").innerHTML=`<option value="">— choose a set —</option>`+Object.keys(EXAMPLES).map(k=>`<option>${esc(k)}</option>`).join("");
+  $("#exSel").onchange=e=>{const k=e.target.value;if(!k)return;$("#fCorpus").value=(EXAMPLES[k]||DEFAULT_DOCS).join("\n");e.target.value="";};
+  $("#bEdit").onclick=()=>{$("#fCorpus").value=A.docs.join("\n");$("#mCorpus").classList.add("open");};
+  $("#bCorpusApply").onclick=()=>{const l=$("#fCorpus").value.split("\n").map(s=>s.trim()).filter(Boolean);if(!l.length)return;A.docs=l;$("#mCorpus").classList.remove("open");resetAll();};
+  $("#stopT").onchange=e=>{A.stop=e.target.checked;resetAll();};
+  prepare();if(typeof onReset==="function")onReset();
+  goPage(parseInt(location.hash.slice(1))||1,true);
+}
+
+
+let vb=0,vbT=null,sel=0,es={s:0,p:0,t:null},cmp={a:0,b:1};
+const stream=()=>{const s=[];A.tokens.forEach((t,d)=>t.forEach((w,i)=>s.push({d,i,w})));return s;};
+function stopTimers(){if(vbT){clearInterval(vbT);vbT=null;$("#vbPlay").textContent="▶ Play";}if(es.t){clearInterval(es.t);es.t=null;$("#esPlay").textContent="▶ Play";}}
+function onReset(){vb=0;sel=0;es={s:0,p:0,t:null};cmp={a:A.id.cat??0,b:A.id.dog??Math.min(1,A.vocab.length-1)};stopTimers();}
+function onPage(){stopTimers();}
+function renderPage(){
+  const V=A.vocab.length;
+  if(page===2){
+    const st=stream();if(vb>st.length)vb=st.length;
+    const cur=vb>0?st[vb-1]:null;
+    const seenW=[];st.slice(0,vb).forEach(o=>{if(!seenW.includes(o.w))seenW.push(o.w);});
+    let k=0;
+    $("#vbDocs").innerHTML=A.tokens.map((t,d)=>`<div style="display:flex;gap:10px;align-items:center"><b class="small" style="color:var(--blue);width:26px">S${d+1}</b><div class="toks" dir="auto" style="margin:4px 0">${t.map(w=>{const idx=k++;return `<span class="${idx<vb-1?"done":(idx===vb-1?"cur":"fut")}" style="font-size:15px;padding:6px 10px">${esc(w)}</span>`;}).join("")}</div></div>`).join("");
+    let msg="Press <b>Next word ▶</b> to start reading.";
+    if(cur){const firstIdx=st.findIndex(o=>o.w===cur.w);const isNew=firstIdx===vb-1;
+      msg=isNew?`“<b>${esc(cur.w)}</b>” is <b style="color:var(--orange)">new</b> → it gets ID <b>${seenW.indexOf(cur.w)}</b>.`:`“<b>${esc(cur.w)}</b>” is already in the vocabulary (ID ${seenW.indexOf(cur.w)}) → skip.`;}
+    if(vb===st.length&&st.length)msg+=` <b style="color:var(--green)">Done — vocabulary size V = ${seenW.length}.</b>`;
+    $("#vbMsg").innerHTML=msg;
+    $("#vbCount").textContent=`${seenW.length} words · read ${vb} of ${st.length} tokens`;
+    const newW=cur&&st.findIndex(o=>o.w===cur.w)===vb-1?cur.w:null;
+    $("#vbVocab").innerHTML=seenW.map((w,i)=>`<span class="chip ${w===newW?"new":(cur&&w===cur.w?"sel":"")}" dir="auto">${i}: ${esc(w)}</span>`).join("")||`<span class="muted small">(empty)</span>`;
+  }
+  if(page===3){
+    if(sel>=V)sel=0;
+    $("#ohChips").innerHTML=A.vocab.map((w,i)=>`<span class="chip ${i===sel?"sel":""}" data-sel="${i}" dir="auto">${i}: ${esc(w)}</span>`).join("");
+    $("#ohWord").textContent=`“${A.vocab[sel]}” (ID ${sel})`;
+    $("#ohVec").innerHTML=vecRow(A.vocab.map((_,i)=>i===sel?1:0),A.vocab,{on:i=>i===sel,idx:true,dec:0});
+    $("#ohForm").innerHTML=`${esc(iso(A.vocab[sel]))} → [ ${A.vocab.map((_,i)=>i===sel?"<b style='color:var(--blue)'>1</b>":"0").join(", ")} ]<br><span class="muted small">length = V = ${V} · exactly one 1 at position ${sel}</span>`;
+    const I=A.vocab.map((_,i)=>A.vocab.map((_,j)=>i===j?1:0));
+    $("#ohMat").innerHTML=matrix(A.vocab,A.vocab,I,{max:1,dec:0,hlRow:sel,hlCol:sel,hlCell:[sel,sel]});
+  }
+  if(page===4){
+    if(es.s>=A.tokens.length)es.s=0;
+    $("#esSelWrap").innerHTML=`<select id="esSel">${A.raw.map((t,i)=>`<option value="${i}" ${i===es.s?"selected":""}>S${i+1}: ${esc(t.join(" "))}</option>`).join("")}</select>`;
+    $("#esSel").onchange=e=>{stopTimers();es.s=+e.target.value;es.p=0;renderPage();};
+    const t=A.tokens[es.s];if(es.p>t.length)es.p=t.length;
+    $("#esToks").innerHTML=t.map((w,i)=>`<span class="${i<es.p-1?"done":(i===es.p-1?"cur":"fut")}">${esc(w)}</span>`).join("");
+    const M=t.map(w=>A.vocab.map((_,j)=>j===A.id[w]?1:0));
+    $("#esMat").innerHTML=matrix(t.map((w,i)=>`${i+1}. ${w}`),A.vocab,M,{max:1,dec:0,dimFrom:es.p,hlRow:es.p-1,hlCol:es.p>0?A.id[t[es.p-1]]:null,hlCell:es.p>0?[es.p-1,A.id[t[es.p-1]]]:null});
+    $("#esShape").textContent=`${t.length} words × V = ${V} → ${t.length*V} numbers, only ${t.length} of them are 1`;
+    $("#esMsg").innerHTML=es.p===0?"Press <b>Next word ▶</b> to encode the sentence word by word.":`Word ${es.p}: “<b>${esc(t[es.p-1])}</b>” has ID <b>${A.id[t[es.p-1]]}</b> → row ${es.p} gets a 1 in column ${A.id[t[es.p-1]]}.${es.p===t.length?" <b style='color:var(--green)'>Sentence encoded.</b>":""}`;
+  }
+  if(page===5){
+    const opts=v=>A.vocab.map((w,i)=>`<option value="${i}" ${i===v?"selected":""}>${esc(w)}</option>`).join("");
+    if(cmp.a>=V)cmp.a=0;if(cmp.b>=V)cmp.b=Math.min(1,V-1);
+    $("#cmpA").innerHTML=opts(cmp.a);$("#cmpB").innerHTML=opts(cmp.b);
+    const a=A.vocab.map((_,i)=>i===cmp.a?1:0),b=A.vocab.map((_,i)=>i===cmp.b?1:0);
+    const dot=a.reduce((s,x,i)=>s+x*b[i],0),dist=Math.sqrt(a.reduce((s,x,i)=>s+(x-b[i])**2,0));
+    const same=cmp.a===cmp.b;
+    $("#cmpOut").innerHTML=`<div class="small"><b>${esc(A.vocab[cmp.a])}</b></div>${vecRow(a,A.vocab,{on:i=>i===cmp.a,dec:0})}<div class="small"><b>${esc(A.vocab[cmp.b])}</b></div>${vecRow(b,A.vocab,{on:i=>i===cmp.b,dec:0})}
+     <div class="stat"><div><b>${dot}</b><span>dot product</span></div><div><b>${same?"1.00":"0.00"}</b><span>cosine similarity</span></div><div><b>${dist.toFixed(2)}</b><span>distance</span></div></div>
+     <div class="explain ${same?"g":"o"}">${same?"Same word → identical vectors.":`The 1s never line up, so the dot product is always <b>0</b>. For one-hot vectors, <b>${esc(A.vocab[cmp.a])}</b> vs <b>${esc(A.vocab[cmp.b])}</b> is exactly as different as any other pair (distance √2 = 1.41). Try <i>cat</i> vs <i>dog</i>, then <i>cat</i> vs <i>kingdom</i> — no difference. One-hot vectors carry <b>no meaning</b>.`}</div>`;
+    const n=A.tokens.reduce((s,t)=>s+t.length,0);
+    $("#sizeOut").innerHTML=`<div class="stat"><div><b>${V}</b><span>numbers per word (V)</span></div><div><b>${V-1}</b><span>zeros in every vector</span></div><div><b>${(100*(V-1)/V).toFixed(1)}%</b><span>of each vector is zero (sparse)</span></div></div>
+     <div class="explain">Our tiny corpus has ${n} words → ${n} × ${V} = <b>${(n*V).toLocaleString()}</b> numbers, of which only ${n} are 1.</div>
+     <table class="calc"><tr><th>Vocabulary size</th><th>numbers per word</th><th>zeros per word</th></tr>
+     ${[[V,"our corpus"],[10000,"small app"],[50000,"typical English model"],[1000000,"web-scale"]].map(([v,l])=>`<tr><td>${l}</td><td class="n">${v.toLocaleString()}</td><td class="n">${(v-1).toLocaleString()}</td></tr>`).join("")}</table>
+     <div class="explain o">New words are also a problem: a word that is not in the vocabulary has <b>no vector at all</b>, and adding it changes the length of every vector.</div>`;
+  }
+}
+document.addEventListener("click",e=>{const c=e.target.closest("[data-sel]");if(c){sel=+c.dataset.sel;renderPage();}
+  const r=e.target.closest("#ohMat [data-row],#ohMat [data-col]");if(r){sel=+(r.dataset.row??r.dataset.col);renderPage();}});
+const vbStep=d=>{const n=stream().length;vb=Math.max(0,Math.min(n,vb+d));renderPage();return vb<n;};
+$("#vbNext").onclick=()=>{stopTimers();vbStep(1);};$("#vbBack").onclick=()=>{stopTimers();vbStep(-1);};
+$("#vbFirst").onclick=()=>{stopTimers();vb=0;renderPage();};$("#vbAll").onclick=()=>{stopTimers();vb=stream().length;renderPage();};
+$("#vbPlay").onclick=()=>{if(vbT){stopTimers();return;}if(vb>=stream().length)vb=0;$("#vbPlay").textContent="⏸ Pause";vbT=setInterval(()=>{if(!vbStep(1))stopTimers();},900);};
+const esStep=d=>{const n=A.tokens[es.s].length;es.p=Math.max(0,Math.min(n,es.p+d));renderPage();return es.p<n;};
+$("#esNext").onclick=()=>{stopTimers();esStep(1);};$("#esBack").onclick=()=>{stopTimers();esStep(-1);};
+$("#esAll").onclick=()=>{stopTimers();es.p=A.tokens[es.s].length;renderPage();};
+$("#esPlay").onclick=()=>{if(es.t){stopTimers();return;}if(es.p>=A.tokens[es.s].length)es.p=0;$("#esPlay").textContent="⏸ Pause";es.t=setInterval(()=>{if(!esStep(1))stopTimers();},900);};
+$("#cmpA").onchange=e=>{cmp.a=+e.target.value;renderPage();};$("#cmpB").onchange=e=>{cmp.b=+e.target.value;renderPage();};
+
+initCommon();
+})();
+</script></body></html>
